@@ -1,0 +1,327 @@
+﻿<style>
+	.field
+	{
+		margin: 10px 0;
+		display: block;
+		border-width: 1px 0 0 1px;
+		border-style: solid;
+		border-color: black;
+	}
+	.field_cell
+	{
+		display: inline-block;
+		border-style: solid;
+		border-color: black;
+	}
+	.log
+	{
+	}
+	.log_entry
+	{
+	}
+	input
+	{
+		width: 40px;
+	}
+</style>
+<script>
+	function initLog()
+	{
+		var logField = document.getElementById('log');
+		if (!logField)
+		{
+			logField = document.createElement('div');
+			logField.id = 'log';
+			logField.className = 'log';
+			logField.textContent = 'Log:';
+			document.body.appendChild(logField);
+		}
+
+		return logField;
+	}
+	function clearLog()
+	{
+		var logField = document.getElementById('log');
+		if (logField)
+		{
+			document.body.removeChild(logField);
+			initLog();
+		}
+	}
+	function log(text)
+	{
+		var logField = initLog();
+
+		var entry = document.createElement('div');
+		entry.className = 'log_entry';
+		entry.textContent = text;
+		logField.appendChild(entry);
+	}
+	function logReplace(text)
+	{
+		var logField = document.getElementById('log');
+		if (logField)
+		{
+			logField.lastChild.textContent = text;
+		}
+	}
+	function randomIdx(min, max)
+	{
+		return Math.floor(Math.random() * (max - min + 1)) + min;
+	}
+	function lowerBound(sortedArray, value)
+	{
+		var minIdx = 0;
+		var maxIdx = sortedArray.length - 1;
+		var currentIdx;
+
+		while (minIdx <= maxIdx)
+		{
+			currentIdx = ((minIdx + maxIdx) / 2) | 0;
+			var currentValue = sortedArray[currentIdx];
+			if (currentValue < value)
+			{
+				minIdx = currentIdx + 1;
+			}
+			else if (currentValue > value)
+			{
+				maxIdx = currentIdx - 1;
+			}
+			else
+			{
+				return currentIdx;
+			}
+		}
+
+		return minIdx;
+	}
+	function checkConnections(field)
+	{
+		var marks = [];
+		for (var i = 0; i < field.vSize; ++i)
+		{
+			marks.push([]);
+			for (var j = 0; j < field.hSize; ++j)
+			{
+				marks[i].push(0);
+			}
+		}
+
+		var markCount = 0;
+
+		var hIndexes = [0];
+		var vIndexes = [0];
+
+		while (hIndexes.length)
+		{
+			var hIdx = hIndexes.pop();
+			var vIdx = vIndexes.pop();
+
+			if (!marks[hIdx][vIdx])
+			{
+				marks[hIdx][vIdx] = 1;
+				++markCount;
+
+				// right
+				if (vIdx != field.hSize - 1 && (field.cells[hIdx][vIdx].borders & 1) == 0 && marks[hIdx][vIdx + 1] == 0)
+				{
+					hIndexes.push(hIdx);
+					vIndexes.push(vIdx + 1);
+				}
+				// down
+				if (hIdx != field.vSize - 1 && (field.cells[hIdx][vIdx].borders & 2) == 0 && marks[hIdx + 1][vIdx] == 0)
+				{
+					hIndexes.push(hIdx + 1);
+					vIndexes.push(vIdx);
+				}
+				// left
+				if (vIdx != 0 && (field.cells[hIdx][vIdx - 1].borders & 1) == 0 && marks[hIdx][vIdx - 1] == 0)
+				{
+					hIndexes.push(hIdx);
+					vIndexes.push(vIdx - 1);
+				}
+				// up
+				if (hIdx != 0 && (field.cells[hIdx - 1][vIdx].borders & 2) == 0 && marks[hIdx - 1][vIdx] == 0)
+				{
+					hIndexes.push(hIdx - 1);
+					vIndexes.push(vIdx);
+				}
+			}
+		}
+
+		return markCount == field.hSize * field.vSize;
+	}
+	function generateMazeWithoutLoops(hSize, vSize)
+	{
+		var maze = {};
+		maze.hSize = hSize;
+		maze.vSize = vSize;
+		maze.cells = [];
+		maze.borderCount = 0;
+
+		// 2 * vSize * hSize borders: first vertical, first horizontal, second vertical...
+		var restrictedBorders = [];
+
+		for (var i = 0; i < vSize; ++i)
+		{
+			maze.cells.push([]);
+
+			for (var j = 0; j < hSize; ++j)
+			{
+				var border = 0;
+				if (j == hSize - 1)
+				{
+					border += 1;
+					restrictedBorders.push(i * hSize * 2 + j * 2);
+				}
+				if (i == vSize - 1)
+				{
+					border += 2;
+					restrictedBorders.push(i * hSize * 2 + j * 2 + 1);
+				}
+				maze.cells[i].push({ borders: border});
+			}
+		}
+
+		while (restrictedBorders.length != 2 * hSize * vSize)
+		{
+			var borderIdx;
+			var nextIdx;
+			do
+			{
+				borderIdx = randomIdx(0, 2 * hSize * vSize - 1);
+				nextIdx = lowerBound(restrictedBorders, borderIdx);
+			}
+			while (restrictedBorders[nextIdx] == borderIdx);
+
+			var horizontal = borderIdx % 2 == 0;
+			var hIdx = (borderIdx / (2 * hSize)) | 0;
+			var vIdx = ((borderIdx / 2) | 0) % hSize;
+			maze.cells[hIdx][vIdx].borders += horizontal ? 1 : 2;
+			++maze.borderCount;
+
+			if (!checkConnections(maze))
+			{
+				maze.cells[hIdx][vIdx].borders -= horizontal ? 1 : 2;
+				--maze.borderCount;
+			}
+
+			restrictedBorders.splice(nextIdx, 0, borderIdx);
+		}
+
+		return maze;
+	}
+	function addField(gameData)
+	{
+		var cellSize = 15;
+
+		var fieldData = gameData.field;
+
+		var field = document.createElement('div');
+		field.id = 'main_field'
+		field.className = 'field';
+		field.style.width = fieldData.hSize * cellSize + 'px';
+		document.body.appendChild(field);
+
+		for (var i = 0; i < fieldData.vSize; ++i)
+		{
+			var row = document.createElement('div');
+			field.appendChild(row);
+
+			for (var j = 0; j < fieldData.hSize; ++j)
+			{
+				var cell = document.createElement('span');
+
+				switch (fieldData.cells[i][j].borders)
+				{
+				case 0:
+					cell.className = 'field_cell';
+					cell.style.width = cellSize + 'px';
+					cell.style.height = cellSize + 'px';
+					cell.style.borderWidth = '0';
+					break;
+				case 1:
+					cell.className = 'field_cell';
+					cell.style.width = cellSize - 1 + 'px';
+					cell.style.height = cellSize + 'px';
+					cell.style.borderWidth = '0 1px 0 0';
+					break;
+				case 2:
+					cell.className = 'field_cell';
+					cell.style.width = cellSize + 'px';
+					cell.style.height = cellSize - 1 + 'px';
+					cell.style.borderWidth = '0 0 1px 0';
+					break;
+				case 3:
+					cell.className = 'field_cell';
+					cell.style.width = cellSize - 1 + 'px';
+					cell.style.height = cellSize - 1 + 'px';
+					cell.style.borderWidth = '0 1px 1px 0';
+					break;
+				}
+				row.appendChild(cell);
+			}
+		}
+	}
+	function getIntParam(id, min, max, defaultValue)
+	{
+		var elem = document.getElementById(id);
+		var textValue = elem.value;
+		var intValue = parseInt(textValue, 10);
+		if (!intValue || intValue + '' != textValue)
+		{
+			intValue = defaultValue;
+		}
+		if (intValue < min)
+		{
+			intValue = min;
+		}
+		if (intValue > max)
+		{
+			intValue = max;
+		}
+		elem.value = intValue;
+		return intValue;
+	}
+	function clearField()
+	{
+		var field = document.getElementById('main_field');
+		if (field)
+		{
+			document.body.removeChild(field);
+		}
+	}
+	function resetGame()
+	{
+		var hSize = getIntParam('hsize', 1, 100, 40);
+		var vSize = getIntParam('vsize', 1, 100, 40);
+		var borderRatio = 1;
+		var zoneCount = 5;
+		var objectCount = 5;
+
+		clearLog();
+		clearField();
+
+		document.getElementById('generate_button').disabled = true;
+
+		var finishMazeGenerationCallback = function(maze)
+		{
+			var gameData = {};
+			gameData.field = maze;
+			addField(gameData);
+			document.getElementById('generate_button').disabled = false;
+		};
+		var generateMazeCallback = function()
+		{
+			var maze = generateMazeWithoutLoops(hSize, vSize);
+			logReplace('Generation maze ' + hSize + 'x' + vSize + '... done!');
+			setTimeout(finishMazeGenerationCallback, 0, maze);
+		};
+
+		log('Generation maze ' + hSize + 'x' + vSize + '...');
+		setTimeout(generateMazeCallback, 0);
+	}
+</script>
+H (1-100): <input type="text" value="40" id="hsize">
+V (1-100): <input type="text" value="40" id="vsize">
+<button onclick="resetGame();" id="generate_button">Сгенерировать!</button>

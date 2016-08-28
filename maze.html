@@ -1,0 +1,331 @@
+﻿<style>
+	.field
+	{
+		margin: 10px 0;
+		display: block;
+		border-width: 1px 0 0 1px;
+		border-style: solid;
+		border-color: black;
+	}
+	.field_cell
+	{
+		display: inline-block;
+		border-style: solid;
+		border-color: black;
+	}
+	.log
+	{
+	}
+	.log_entry
+	{
+	}
+	input
+	{
+		width: 40px;
+	}
+</style>
+<script>
+	function initLog()
+	{
+		var logField = document.getElementById('log');
+		if (!logField)
+		{
+			logField = document.createElement('div');
+			logField.id = 'log';
+			logField.className = 'log';
+			logField.textContent = 'Log:';
+			document.body.appendChild(logField);
+		}
+
+		return logField;
+	}
+	function clearLog()
+	{
+		var logField = document.getElementById('log');
+		if (logField)
+		{
+			document.body.removeChild(logField);
+			initLog();
+		}
+	}
+	function log(text)
+	{
+		var logField = initLog();
+
+		var entry = document.createElement('div');
+		entry.className = 'log_entry';
+		entry.textContent = text;
+		logField.appendChild(entry);
+	}
+	function logReplace(text)
+	{
+		var logField = document.getElementById('log');
+		if (logField)
+		{
+			logField.lastChild.textContent = text;
+		}
+	}
+	function randomIdx(min, max)
+	{
+		return Math.floor(Math.random() * (max - min + 1)) + min;
+	}
+	function lowerBound(sortedArray, value)
+	{
+		var minIdx = 0;
+		var maxIdx = sortedArray.length - 1;
+		var currentIdx;
+
+		while (minIdx <= maxIdx)
+		{
+			currentIdx = ((minIdx + maxIdx) / 2) | 0;
+			var currentValue = sortedArray[currentIdx];
+			if (currentValue < value)
+			{
+				minIdx = currentIdx + 1;
+			}
+			else if (currentValue > value)
+			{
+				maxIdx = currentIdx - 1;
+			}
+			else
+			{
+				return currentIdx;
+			}
+		}
+
+		return minIdx;
+	}
+	function checkConnections(field)
+	{
+		var marks = [];
+		for (var i = 0; i < field.vSize; ++i)
+		{
+			marks.push([]);
+			for (var j = 0; j < field.hSize; ++j)
+			{
+				marks[i].push(0);
+			}
+		}
+
+		var markCount = 0;
+
+		var hIndexes = [0];
+		var vIndexes = [0];
+
+		while (hIndexes.length)
+		{
+			var hIdx = hIndexes.pop();
+			var vIdx = vIndexes.pop();
+
+			if (!marks[hIdx][vIdx])
+			{
+				marks[hIdx][vIdx] = 1;
+				++markCount;
+
+				// right
+				if (vIdx != field.hSize - 1 && (field.cells[hIdx][vIdx].borders & 1) == 0 && marks[hIdx][vIdx + 1] == 0)
+				{
+					hIndexes.push(hIdx);
+					vIndexes.push(vIdx + 1);
+				}
+				// down
+				if (hIdx != field.vSize - 1 && (field.cells[hIdx][vIdx].borders & 2) == 0 && marks[hIdx + 1][vIdx] == 0)
+				{
+					hIndexes.push(hIdx + 1);
+					vIndexes.push(vIdx);
+				}
+				// left
+				if (vIdx != 0 && (field.cells[hIdx][vIdx - 1].borders & 1) == 0 && marks[hIdx][vIdx - 1] == 0)
+				{
+					hIndexes.push(hIdx);
+					vIndexes.push(vIdx - 1);
+				}
+				// up
+				if (hIdx != 0 && (field.cells[hIdx - 1][vIdx].borders & 2) == 0 && marks[hIdx - 1][vIdx] == 0)
+				{
+					hIndexes.push(hIdx - 1);
+					vIndexes.push(vIdx);
+				}
+			}
+		}
+
+		return markCount == field.hSize * field.vSize;
+	}
+	function generateMazeWithoutLoops(hSize, vSize)
+	{
+		var maze = {};
+		maze.hSize = hSize;
+		maze.vSize = vSize;
+		maze.cells = [];
+		maze.borderCount = 0;
+
+		log("Generating maze " + hSize + "x" + vSize + ": 0%");
+
+		// 2 * vSize * hSize borders: first vertical, first horizontal, second vertical...
+		var restrictedBorders = [];
+
+		for (var i = 0; i < vSize; ++i)
+		{
+			maze.cells.push([]);
+
+			for (var j = 0; j < hSize; ++j)
+			{
+				var border = 0;
+				if (j == hSize - 1)
+				{
+					border += 1;
+					restrictedBorders.push(i * hSize * 2 + j * 2);
+				}
+				if (i == vSize - 1)
+				{
+					border += 2;
+					restrictedBorders.push(i * hSize * 2 + j * 2 + 1);
+				}
+				maze.cells[i].push({ borders: border});
+			}
+		}
+
+		while (restrictedBorders.length != 2 * hSize * vSize)
+		{
+			var borderIdx;
+			var nextIdx;
+			do
+			{
+				borderIdx = randomIdx(0, 2 * hSize * vSize - 1);
+				nextIdx = lowerBound(restrictedBorders, borderIdx);
+			}
+			while (restrictedBorders[nextIdx] == borderIdx);
+
+			var horizontal = borderIdx % 2 == 0;
+			var hIdx = (borderIdx / (2 * hSize)) | 0;
+			var vIdx = ((borderIdx / 2) | 0) % hSize;
+			maze.cells[hIdx][vIdx].borders += horizontal ? 1 : 2;
+			++maze.borderCount;
+
+			if (!checkConnections(maze))
+			{
+				maze.cells[hIdx][vIdx].borders -= horizontal ? 1 : 2;
+				--maze.borderCount;
+			}
+
+			restrictedBorders.splice(nextIdx, 0, borderIdx);
+
+			var percent = (restrictedBorders.length - hSize - vSize) / (2 * hSize * vSize - hSize - vSize) * 100;
+			logReplace("Generating maze " + hSize + "x" + vSize + ": " + percent + "%");
+		}
+
+		return maze;
+	}
+	function generateMaze(hSize, vSize, borderRatio)
+	{
+		var maze = generateMazeWithoutLoops(hSize, vSize);
+
+		// TODO: remove some borders
+
+		return maze;
+	}
+	function generateField(hSize, vSize, borderRatio, zoneCount, objectCount)
+	{
+		var field = generateMaze(hSize, vSize, borderRatio);
+
+		// TODO: add zones
+		// TODO: add objects
+
+		return field;
+	}
+	function show(gameData)
+	{
+		var cellSize = 15;
+
+		var mazeImage = document.getElementById('main_field');
+		if (mazeImage)
+		{
+			document.body.removeChild(mazeImage);
+		}
+
+		var field = gameData.field;
+
+		mazeImage = document.createElement('div');
+		mazeImage.id = 'main_field'
+		mazeImage.className = 'field';
+		mazeImage.style.width = field.hSize * cellSize + 'px';
+		document.body.appendChild(mazeImage);
+
+		for (var i = 0; i < field.vSize; ++i)
+		{
+			var row = document.createElement('div');
+			mazeImage.appendChild(row);
+
+			for (var j = 0; j < field.hSize; ++j)
+			{
+				var cell = document.createElement('span');
+
+				switch (field.cells[i][j].borders)
+				{
+				case 0:
+					cell.className = 'field_cell';
+					cell.style.width = cellSize + 'px';
+					cell.style.height = cellSize + 'px';
+					cell.style.borderWidth = '0';
+					break;
+				case 1:
+					cell.className = 'field_cell';
+					cell.style.width = cellSize - 1 + 'px';
+					cell.style.height = cellSize + 'px';
+					cell.style.borderWidth = '0 1px 0 0';
+					break;
+				case 2:
+					cell.className = 'field_cell';
+					cell.style.width = cellSize + 'px';
+					cell.style.height = cellSize - 1 + 'px';
+					cell.style.borderWidth = '0 0 1px 0';
+					break;
+				case 3:
+					cell.className = 'field_cell';
+					cell.style.width = cellSize - 1 + 'px';
+					cell.style.height = cellSize - 1 + 'px';
+					cell.style.borderWidth = '0 1px 1px 0';
+					break;
+				}
+				row.appendChild(cell);
+			}
+		}
+	}
+	function getIntParam(id, min, max, defaultValue)
+	{
+		var elem = document.getElementById(id);
+		var textValue = elem.value;
+		var intValue = parseInt(textValue, 10);
+		if (!intValue || intValue + "" != textValue)
+		{
+			intValue = defaultValue;
+		}
+		if (intValue < min)
+		{
+			intValue = min;
+		}
+		if (intValue > max)
+		{
+			intValue = max;
+		}
+		elem.value = intValue;
+		return intValue;
+	}
+	function resetGame()
+	{
+		var hSize = getIntParam('hsize', 1, 100, 40);
+		var vSize = getIntParam('vsize', 1, 100, 40);
+		var borderRatio = 1;
+		var zoneCount = 5;
+		var objectCount = 5;
+
+		clearLog();
+
+		var gameData = {};
+		gameData.field = generateField(hSize, vSize, borderRatio, zoneCount, objectCount);
+		show(gameData);
+	}
+</script>
+H (1-100): <input type="text" value="40" id="hsize">
+V (1-100): <input type="text" value="40" id="vsize">
+<button onclick="resetGame();" id="generate_button">Сгенерировать!</button>
