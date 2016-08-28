@@ -19,7 +19,7 @@
 	.log_entry
 	{
 	}
-	input
+	.size
 	{
 		width: 40px;
 	}
@@ -326,6 +326,8 @@
 		show(gameData);
 	}
 </script>
-H (1-100): <input type="text" value="40" id="hsize">
-V (1-100): <input type="text" value="40" id="vsize">
-<button onclick="resetGame();" id="generate_button">Сгенерировать!</button>
+<form onsubmit="resetGame(); return false;">
+H (1-100): <input type="text" class="size" value="40" id="hsize">
+V (1-100): <input type="text" class="size" value="40" id="vsize">
+<input type="submit" id="generate_button" value="Сгенерировать!">
+</form>
