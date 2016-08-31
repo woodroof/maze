@@ -99,6 +99,21 @@ function checkConnections(field)
 
     return markCount === field.hSize * field.vSize;
 }
+function shuffle(array)
+{
+    var currentIdx = array.length;
+
+    while (currentIdx)
+    {
+        --currentIdx;
+        var idx = randomIdx(0, currentIdx);
+        var tmp = array[currentIdx];
+        array[currentIdx] = array[idx];
+        array[idx] = tmp;
+    }
+
+    return array;
+}
 function generateMazeWithoutLoops(hSize, vSize)
 {
     var messagePrefix = 'Generating maze ' + hSize + 'x' + vSize + ': ';
@@ -112,7 +127,7 @@ function generateMazeWithoutLoops(hSize, vSize)
     maze.borderCount = 0;
 
     // 2 * vSize * hSize borders: first vertical, first horizontal, second vertical...
-    var restrictedBorders = [];
+    var allowedBorders = [];
 
     for (var i = 0; i < vSize; ++i)
     {
@@ -125,27 +140,28 @@ function generateMazeWithoutLoops(hSize, vSize)
             if (j === hSize - 1)
             {
                 newCell.right = true;
-                restrictedBorders.push(i * hSize * 2 + j * 2);
+            }
+            else
+            {
+                allowedBorders.push(i * hSize * 2 + j * 2);
             }
             if (i === vSize - 1)
             {
                 newCell.bottom = true;
-                restrictedBorders.push(i * hSize * 2 + j * 2 + 1);
+            }
+            else
+            {
+                allowedBorders.push(i * hSize * 2 + j * 2 + 1);
             }
             maze.cells[i].push(newCell);
         }
     }
 
-    while (restrictedBorders.length !== 2 * hSize * vSize)
+    allowedBorders = shuffle(allowedBorders);
+
+    for (var allowedIdx = 0; allowedIdx < allowedBorders.length; ++allowedIdx)
     {
-        var borderIdx;
-        var nextIdx;
-        do
-        {
-            borderIdx = randomIdx(0, 2 * hSize * vSize - 1);
-            nextIdx = lowerBound(restrictedBorders, borderIdx);
-        }
-        while (restrictedBorders[nextIdx] === borderIdx);
+        var borderIdx = allowedBorders[allowedIdx];
 
         var horizontal = borderIdx % 2 === 0;
         var hIdx = (borderIdx / (2 * hSize)) | 0;
@@ -175,9 +191,7 @@ function generateMazeWithoutLoops(hSize, vSize)
             --maze.borderCount;
         }
 
-        restrictedBorders.splice(nextIdx, 0, borderIdx);
-
-        var percent = (restrictedBorders.length - hSize - vSize) / (2 * hSize * vSize - hSize - vSize) * 100 | 0;
+        var percent = ((allowedIdx + 1) / allowedBorders.length * 100) | 0;
         logReplace(messagePrefix + percent + '%');
     }
 
