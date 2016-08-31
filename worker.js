@@ -159,6 +159,8 @@ function generateMazeWithoutLoops(hSize, vSize)
 
     allowedBorders = shuffle(allowedBorders);
 
+    var reportedPercent = 0;
+
     for (var allowedIdx = 0; allowedIdx < allowedBorders.length; ++allowedIdx)
     {
         var borderIdx = allowedBorders[allowedIdx];
@@ -192,7 +194,11 @@ function generateMazeWithoutLoops(hSize, vSize)
         }
 
         var percent = ((allowedIdx + 1) / allowedBorders.length * 100) | 0;
-        logReplace(messagePrefix + percent + '%');
+        if (percent != reportedPercent)
+        {
+            reportedPercent = percent;
+            logReplace(messagePrefix + percent + '%');
+        }
     }
 
     logReplace(messagePrefix + 'done!');
