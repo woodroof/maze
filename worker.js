@@ -116,7 +116,7 @@ function shuffle(array)
 }
 function generateMazeWithoutLoops(hSize, vSize)
 {
-    var messagePrefix = 'Generating maze ' + hSize + 'x' + vSize + ': ';
+    var messagePrefix = 'Изучаем топологию сети... ';
 
     log(messagePrefix + '0%');
 
@@ -201,16 +201,15 @@ function generateMazeWithoutLoops(hSize, vSize)
         }
     }
 
-    logReplace(messagePrefix + 'done!');
+    logReplace(messagePrefix + 'готово!');
 
     return maze;
 }
-function generate(params)
+function generateHackField(params)
 {
     var message = {};
-    message.type = 'show';
-    message.data = {};
-    message.data.field = generateMazeWithoutLoops(params.hSize, params.vSize);
+    message.type = 'show_hack_field';
+    message.data = generateMazeWithoutLoops(params.hSize, params.vSize);
     postMessage(message);
 }
 
@@ -220,8 +219,8 @@ onmessage =
         var msg = messageEvent.data;
         switch (msg.type)
         {
-        case 'generate':
-            generate(msg.params);
+        case 'generate_hack_field':
+            generateHackField(msg.params);
             break;
         }
     }

@@ -1,28 +1,36 @@
-function initLog()
-{
-    var logField = document.getElementById('log');
-    if (!logField)
-    {
-        logField = document.createElement('div');
-        logField.id = 'log';
-        logField.className = 'log';
-        logField.textContent = 'Log:';
-        document.body.appendChild(logField);
-    }
+/* TODO:
+ * - Выбор центральной точки
+ * - Размещение оборудования
+ * - Добавление связей
+ * - Разметка зон (от оборудования)
+ * - Зона неизвестного
+ * - Зона устаревшего
+ * - Зона видимого
+ * - Перемещение
+ * - Таймер на завершение
+ * - Удаление связей
+ * - Проверка связности, завершение по нахождению в отключенной подсети
+ * - Игра инженера (своя зона видимого и устаревшего, восстановление связей)
+ * - Рестарт игры
+ * - Отображение сети как сети
+ * Желательно:
+ * - Настройка внешнего вида
+ * Опционально:
+ * - Сообщения о нахождении оборудования
+ * - "Бонусы" (положительные и отрицательные)
+ * - Дополнительные возможности (ping? traceroute?)
+ */
 
-    return logField;
-}
-function clearLog()
-{
-    var logField = document.getElementById('log');
-    if (logField)
-    {
-        logField.textContent = 'Log:';
-    }
-}
+var worker;
+
+var hSize = 30;
+var vSize = 30;
+var cellSize = 15;
+var logWidth = 350;
+
 function log(text)
 {
-    var logField = initLog();
+    var logField = document.getElementById('log');
 
     var entry = document.createElement('div');
     entry.className = 'log_entry';
@@ -31,35 +39,24 @@ function log(text)
 }
 function logReplace(text)
 {
-    var logField = document.getElementById('log');
-    if (logField)
-    {
-        logField.lastChild.textContent = text;
-    }
+    document.getElementById('log').lastChild.textContent = text;
 }
 
-function clearField()
+function showHackField(field)
 {
-    var mazeImage = document.getElementById('main_field');
+    var mazeImage = document.getElementById('field');
     if (mazeImage)
     {
-        document.body.removeChild(mazeImage);
+        mazeImage.innerHTML = '';
     }
-}
-
-function show(gameData)
-{
-    var cellSize = 15;
-
-    clearField();
-
-    var field = gameData.field;
-
-    mazeImage = document.createElement('div');
-    mazeImage.id = 'main_field'
-    mazeImage.className = 'field';
-    mazeImage.style.width = field.hSize * cellSize + 'px';
-    document.body.appendChild(mazeImage);
+    else
+    {
+        mazeImage = document.createElement('div');
+        mazeImage.id = 'field';
+        mazeImage.className = 'hack_field';
+        mazeImage.style.width = field.hSize * cellSize + 'px';
+        document.getElementById('field_zone').appendChild(mazeImage);
+    }
 
     for (var i = 0; i < field.vSize; ++i)
     {
@@ -95,12 +92,65 @@ function show(gameData)
             row.appendChild(cell);
         }
     }
+}
+function startHackGame()
+{
+    console.log('startHackGame');
 
-    document.getElementById('generate_button').disabled = false;
+    document.getElementById('action_zone').innerHTML = '';
+
+    var message = {};
+    message.type = 'generate_hack_field';
+    message.params = {};
+    message.params.hSize = hSize;
+    message.params.vSize = vSize;
+
+    worker.postMessage(message);
+}
+function showHackerGreeting()
+{
+    document.body.innerHTML = '';
+    document.body.style.minWidth = logWidth + hSize * cellSize + 1;
+
+    var logField = document.createElement('div');
+    logField.id = 'log';
+    logField.className = 'hack_log';
+    logField.style.width = logWidth + 'px';
+
+    document.body.appendChild(logField);
+
+    var zone = document.createElement('div');
+    zone.id = 'zone';
+    zone.className = 'zone';
+
+    var fieldZone = document.createElement('div');
+    fieldZone.id = 'field_zone';
+    fieldZone.style.height = vSize * cellSize + 1 + 'px';
+
+    zone.appendChild(fieldZone);
+
+    var actionZone = document.createElement('div');
+    actionZone.id = 'action_zone';
+    actionZone.className = 'action_zone';
+
+    var hackButton = document.createElement('input');
+    hackButton.className = 'hack_button';
+    hackButton.onclick = function() { startHackGame(); };
+    hackButton.type = 'button';
+    hackButton.value = 'Взломать!';
+
+    actionZone.appendChild(hackButton);
+
+    zone.appendChild(actionZone);
+
+    document.body.appendChild(zone);
+}
+function showEngeenerGreeting()
+{
+    document.body.innerHTML = '';
 }
 
-var worker = new Worker("worker.js");
-
+worker = new Worker("worker.js");
 worker.onmessage =
     function(messageEvent)
     {
@@ -113,47 +163,8 @@ worker.onmessage =
         case 'log_replace':
             logReplace(message.data);
             break;
-        case 'show':
-            show(message.data);
+        case 'show_hack_field':
+            showHackField(message.data);
             break;
         }
     };
-
-function getIntParam(id, min, max, defaultValue)
-{
-    var elem = document.getElementById(id);
-    var textValue = elem.value;
-    var intValue = parseInt(textValue, 10);
-    if (!intValue || intValue + "" !== textValue)
-    {
-        intValue = defaultValue;
-    }
-    if (intValue < min)
-    {
-        intValue = min;
-    }
-    if (intValue > max)
-    {
-        intValue = max;
-    }
-    elem.value = intValue;
-    return intValue;
-}
-function resetGame()
-{
-    var hSize = getIntParam('hsize', 1, 100, 40);
-    var vSize = getIntParam('vsize', 1, 100, 40);
-
-    clearLog();
-    clearField();
-
-    document.getElementById('generate_button').disabled = true;
-
-    var message = {};
-    message.type = 'generate';
-    message.params = {};
-    message.params.hSize = hSize;
-    message.params.vSize = vSize;
-
-    worker.postMessage(message);
-}

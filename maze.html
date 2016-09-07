@@ -1,8 +1,7 @@
 ﻿<style>
-	.field
+	.hack_field
 	{
-		margin: 10px 0;
-		display: block;
+		display: inline-block;
 		border-width: 1px 0 0 1px;
 		border-style: solid;
 		border-color: black;
@@ -15,20 +14,34 @@
 		border-left-width: 0;
 		border-top-width: 0;
 	}
-	.log
+	.zone
 	{
+		text-align: center;
+	}
+	.zone
+	{
+		text-align: center;
+	}
+	.action_zone
+	{
+		padding: 5px;
+	}
+	.hack_log
+	{
+		min-height: 30px;
+		height: 100%;
+		display: inline-block;
+		float: right;
+		overflow-y: auto;
 	}
 	.log_entry
 	{
+		padding: 0 5px;
 	}
-	.size
+	.hack_button
 	{
-		width: 40px;
+		display: inline-block;
 	}
 </style>
 <script src="game.js"></script>
-<form onsubmit="resetGame(); return false;">
-H (1-100): <input type="text" class="size" value="40" id="hsize">
-V (1-100): <input type="text" class="size" value="40" id="vsize">
-<input type="submit" id="generate_button" value="Сгенерировать!">
-</form>
+<body onload="showHackerGreeting()" />
