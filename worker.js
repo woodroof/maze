@@ -1,3 +1,51 @@
+var equipment = [
+    {
+        "id": "c&c",
+        "name": "Командный центр",
+        "color": "blue"
+    },
+    {
+        "id": "customs",
+        "name": "Таможня",
+        "color": "blue"
+    },
+    {
+        "id": "medlab",
+        "name": "Медицинская лаборатория",
+        "color": "blue"
+    },
+    {
+        "id": "depot17",
+        "name": "Хранилище №17",
+        "color": "yellow"
+    },
+    {
+        "id": "reactor",
+        "name": "Ядерный реактор",
+        "color": "yellow"
+    },
+    {
+        "id": "garden",
+        "name": "Сад",
+        "color": "red"
+    },
+    {
+        "id": "advisers",
+        "name": "Консультативный совет Вавилона 5",
+        "color": "green"
+    },
+    {
+        "id": "life_support",
+        "name": "Системы жизнеобеспечения",
+        "color": "grey"
+    },
+    {
+        "id": "waste_recycling",
+        "name": "Системы переработки мусора",
+        "color": "brown"
+    }
+];
+
 function log(text)
 {
     var message = {};
@@ -118,6 +166,7 @@ function generateMazeWithoutLoops(hSize, vSize)
 {
     var messagePrefix = 'Изучаем топологию сети... ';
 
+    var reportedPercent = 0;
     log(messagePrefix + '0%');
 
     var maze = {};
@@ -158,8 +207,6 @@ function generateMazeWithoutLoops(hSize, vSize)
     }
 
     allowedBorders = shuffle(allowedBorders);
-
-    var reportedPercent = 0;
 
     for (var allowedIdx = 0; allowedIdx < allowedBorders.length; ++allowedIdx)
     {
@@ -205,11 +252,55 @@ function generateMazeWithoutLoops(hSize, vSize)
 
     return maze;
 }
+function addEquipment(field)
+{
+    var messagePrefix = 'Находим подключенное оборудование... ';
+
+    var reportedPercent = 0;
+    log(messagePrefix + '0%');
+
+    field.equipment = [];
+
+    for (var i = 0; i < equipment.length; ++i)
+    {
+        var pos = {};
+
+        do
+        {
+            pos.x = randomIdx(0, field.vSize);
+            pos.y = randomIdx(0, field.hSize);
+        }
+        while (!field.cells[pos.x][pos.y].equipment);
+
+        var cell = field.cells[pos.x][pos.y];
+        cell.equipment = equipment[i].name;
+        cell.color = equipment[i].color;
+
+        field.equipment.push({'id': equipment[i].id, 'pos': pos});
+
+        if (!i)
+        {
+            field.entry_point = pos;
+        }
+
+        var percent = ((i + 1) / equipment.length * 100) | 0;
+        if (percent != reportedPercent)
+        {
+            reportedPercent = percent;
+            logReplace(messagePrefix + percent + '%');
+        }
+    }
+
+    logReplace(messagePrefix + 'успешно!');
+}
 function generateHackField(params)
 {
+    var field = generateMazeWithoutLoops(params.hSize, params.vSize);
+    addEquipment(field);
+
     var message = {};
     message.type = 'show_hack_field';
-    message.data = generateMazeWithoutLoops(params.hSize, params.vSize);
+    message.data = field;
     postMessage(message);
 }
 
