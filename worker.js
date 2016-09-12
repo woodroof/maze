@@ -5,39 +5,135 @@ var equipment = [
         "color": "blue"
     },
     {
-        "id": "customs",
-        "name": "Таможня",
-        "color": "blue"
-    },
-    {
-        "id": "medlab",
-        "name": "Медицинская лаборатория",
-        "color": "blue"
-    },
-    {
-        "id": "depot17",
-        "name": "Хранилище №17",
+        "id": "reactor1",
+        "name": "Реактор 1",
         "color": "yellow"
     },
     {
-        "id": "reactor",
-        "name": "Ядерный реактор",
+        "id": "reactor2",
+        "name": "Реактор 2",
         "color": "yellow"
     },
     {
-        "id": "garden",
-        "name": "Сад",
-        "color": "red"
+        "id": "spaceport",
+        "name": "Космопорт",
+        "color": "blue"
     },
     {
-        "id": "advisers",
-        "name": "Консультативный совет Вавилона 5",
-        "color": "green"
+        "id": "squadron1",
+        "name": "Эскадрилья 1",
+        "color": "blue"
+    },
+    {
+        "id": "squadron2",
+        "name": "Эскадрилья 2",
+        "color": "blue"
+    },
+    {
+        "id": "squadron3",
+        "name": "Эскадрилья 3",
+        "color": "blue"
+    },
+    {
+        "id": "squadron4",
+        "name": "Эскадрилья 4",
+        "color": "blue"
+    },
+    {
+        "id": "weapon1",
+        "name": "Орудие 1",
+        "color": "blue"
+    },
+    {
+        "id": "weapon2",
+        "name": "Орудие 2",
+        "color": "blue"
+    },
+    {
+        "id": "weapon3",
+        "name": "Орудие 3",
+        "color": "blue"
+    },
+    {
+        "id": "weapon4",
+        "name": "Орудие 4",
+        "color": "blue"
+    },
+    {
+        "id": "radar",
+        "name": "Радар",
+        "color": "blue"
+    },
+    {
+        "id": "observatory",
+        "name": "Система наблюдения",
+        "color": "blue"
+    },
+    {
+        "id": "transmitter1",
+        "name": "Тахионный передатчик 1",
+        "color": "blue"
+    },
+    {
+        "id": "transmitter2",
+        "name": "Тахионный передатчик 2",
+        "color": "blue"
+    },
+    {
+        "id": "shield1",
+        "name": "Генератор щита 1",
+        "color": "blue"
+    },
+    {
+        "id": "shield2",
+        "name": "Генератор щита 2",
+        "color": "blue"
+    },
+    {
+        "id": "beacon",
+        "name": "Гипермаяк",
+        "color": "blue"
+    },
+    {
+        "id": "close_range_weapon",
+        "name": "Орудия ближнего боя",
+        "color": "blue"
     },
     {
         "id": "life_support",
-        "name": "Системы жизнеобеспечения",
+        "name": "Система жизнеобеспечения",
         "color": "grey"
+    },
+    {
+        "id": "hyperdrive",
+        "name": "Гипердвигатель",
+        "color": "grey"
+    },
+    {
+        "id": "maneuvering_thrusters",
+        "name": "Маневровые двигатели",
+        "color": "grey"
+    },
+    {
+        "id": "drive1",
+        "name": "Двигатель 1",
+        "color": "grey"
+    },
+    {
+        "id": "drive2",
+        "name": "Двигатель 2",
+        "color": "grey"
+    },
+    // Всякое левое
+    {
+        "id": "water storage",
+        "name": "Хранилище воды",
+        "color": "red"
+    },
+    {
+        "id": "restaurant",
+        "name": "Столовая",
+        "color": "green"
     },
     {
         "id": "waste_recycling",
