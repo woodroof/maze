@@ -27,7 +27,7 @@ var worker;
 var hSize = 30;
 var vSize = 30;
 var cellSize = 15;
-var logWidth = 350;
+var logWidth = 400;
 
 function log(text)
 {
@@ -36,11 +36,11 @@ function log(text)
     var entry = document.createElement('div');
     entry.className = 'log_entry';
     entry.textContent = text;
-    logField.appendChild(entry);
+    logField.insertBefore(entry, logField.firstChild);
 }
 function logReplace(text)
 {
-    document.getElementById('log').lastChild.textContent = text;
+    document.getElementById('log').firstChild.textContent = text;
 }
 
 function getColor(name)
