@@ -1,6 +1,4 @@
 /* TODO:
- * - Общая обработка процентов
- * - Отображение оборудования
  * - Добавление связей
  * - Разметка цветовых зон
  * - Отображение цветовых зон
@@ -45,10 +43,29 @@ function logReplace(text)
     document.getElementById('log').lastChild.textContent = text;
 }
 
+function getColor(name)
+{
+    switch (name)
+    {
+    case 'blue':
+        return '#BAD3FF';
+    case 'yellow':
+        return '#FFFFA8';
+    case 'grey':
+        return '#C9C9C9';
+    case 'red':
+        return '#FFC9C9';
+    case 'green':
+        return '#C4FFC9';
+    }
+
+    // brown
+    return '#E6CACA';
+}
 function showHackField(field)
 {
     var mazeImage = document.getElementById('field');
-    if (mazeImage)
+    if (mazeImage !== null)
     {
         mazeImage.innerHTML = '';
     }
@@ -70,7 +87,7 @@ function showHackField(field)
         {
             var cellData = field.cells[i][j];
 
-            var cell = document.createElement('span');
+            var cell = document.createElement('div');
             cell.className = 'field_cell';
             if (cellData.right)
             {
@@ -92,14 +109,32 @@ function showHackField(field)
                 cell.style.height = cellSize + 'px';
                 cell.style.borderBottomWidth = 0;
             }
+            if (cellData.color !== undefined)
+            {
+                cell.style.backgroundColor = getColor(cellData.color);
+            }
+            if (cellData.equipment !== undefined)
+            {
+                var equipment_cell_size = (((cellSize / 2) | 0) - 2) * 2;
+
+                var equipment_pos = document.createElement('div');
+                equipment_pos.className = 'equipment';
+                equipment_pos.style.width = equipment_cell_size + 'px';
+                equipment_pos.style.height = equipment_cell_size + 'px';
+                equipment_pos.style.borderRadius = equipment_cell_size / 2 + 'px';
+                equipment_pos.style.marginLeft = (cellSize - equipment_cell_size) / 2 | 0 + 'px';
+                equipment_pos.style.marginTop = (cellSize - equipment_cell_size) / 2 | 0 + 'px';
+                equipment_pos.title = cellData.equipment;
+
+                cell.appendChild(equipment_pos);
+            }
+
             row.appendChild(cell);
         }
     }
 }
 function startHackGame()
 {
-    console.log('startHackGame');
-
     document.getElementById('action_zone').innerHTML = '';
 
     var message = {};

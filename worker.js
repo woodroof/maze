@@ -162,12 +162,30 @@ function shuffle(array)
 
     return array;
 }
+function setPercent(info, percent)
+{
+    if (info.reportedPercent === undefined || info.reportedPercent !== percent)
+    {
+        var logFunction = info.reportedPercent === undefined ? log : logReplace;
+        if (percent === 100)
+        {
+            logFunction(info.message + '... готово!');
+        }
+        else
+        {
+            logFunction(info.message + '... ' + percent + '%');
+        }
+        info.reportedPercent = percent;
+    }
+}
 function generateMazeWithoutLoops(hSize, vSize)
 {
-    var messagePrefix = 'Изучаем топологию сети... ';
+    var logInfo =
+        {
+            'message': 'Изучаем топологию сети'
+        };
 
-    var reportedPercent = 0;
-    log(messagePrefix + '0%');
+    setPercent(logInfo, 0);
 
     var maze = {};
     maze.hSize = hSize;
@@ -240,24 +258,21 @@ function generateMazeWithoutLoops(hSize, vSize)
             --maze.borderCount;
         }
 
-        var percent = ((allowedIdx + 1) / allowedBorders.length * 100) | 0;
-        if (percent != reportedPercent)
-        {
-            reportedPercent = percent;
-            logReplace(messagePrefix + percent + '%');
-        }
+        setPercent(logInfo, ((allowedIdx + 1) / allowedBorders.length * 100) | 0);
     }
 
-    logReplace(messagePrefix + 'готово!');
+    setPercent(logInfo, 100);
 
     return maze;
 }
 function addEquipment(field)
 {
-    var messagePrefix = 'Находим подключенное оборудование... ';
+    var logInfo =
+        {
+            'message': 'Находим подключенное оборудование'
+        };
 
-    var reportedPercent = 0;
-    log(messagePrefix + '0%');
+    setPercent(logInfo, 0);
 
     field.equipment = [];
 
@@ -267,10 +282,10 @@ function addEquipment(field)
 
         do
         {
-            pos.x = randomIdx(0, field.vSize);
-            pos.y = randomIdx(0, field.hSize);
+            pos.x = randomIdx(0, field.vSize - 1);
+            pos.y = randomIdx(0, field.hSize - 1);
         }
-        while (!field.cells[pos.x][pos.y].equipment);
+        while (field.cells[pos.x][pos.y].equipment);
 
         var cell = field.cells[pos.x][pos.y];
         cell.equipment = equipment[i].name;
@@ -283,15 +298,10 @@ function addEquipment(field)
             field.entry_point = pos;
         }
 
-        var percent = ((i + 1) / equipment.length * 100) | 0;
-        if (percent != reportedPercent)
-        {
-            reportedPercent = percent;
-            logReplace(messagePrefix + percent + '%');
-        }
+        setPercent(logInfo, ((i + 1) / equipment.length * 100) | 0);
     }
 
-    logReplace(messagePrefix + 'успешно!');
+    setPercent(logInfo, 100);
 }
 function generateHackField(params)
 {
