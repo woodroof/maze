@@ -63,6 +63,25 @@ function getColor(name)
     // brown
     return '#E6CACA';
 }
+function getTitle(name)
+{
+    switch (name)
+    {
+    case 'blue':
+        return 'Синий сектор';
+    case 'yellow':
+        return 'Жёлтый сектор';
+    case 'grey':
+        return 'Серый сектор';
+    case 'red':
+        return 'Красный сектор';
+    case 'green':
+        return 'Зелёный сектор';
+    }
+
+    // brown
+    return 'Коричневый сектор';
+}
 function showHackField(field)
 {
     var fieldImage = document.getElementById('field');
@@ -92,6 +111,15 @@ function showHackField(field)
             cell.className = 'field_cell';
             cell.style.width = cellSize + 'px';
             cell.style.height = cellSize + 'px';
+            cell.style.backgroundColor = getColor(cellData.color);
+
+            var title = document.createElement('div');
+            title.className = 'zone_title';
+            title.style.width = cellSize + 'px';
+            title.style.height = cellSize + 'px';
+            title.title = getTitle(cellData.color);
+            cell.appendChild(title);
+
             if (!cellData.right)
             {
                 var hConnection = document.createElement('div');
@@ -112,10 +140,6 @@ function showHackField(field)
                 vConnection.style.marginTop = cellSize / 2 | 0 + 'px';
                 cell.appendChild(vConnection);
             }
-            if (cellData.color !== undefined)
-            {
-                cell.style.backgroundColor = getColor(cellData.color);
-            }
             if (cellData.equipment !== undefined)
             {
                 var equipmentPosition = document.createElement('div');
@@ -132,7 +156,7 @@ function showHackField(field)
                 equipmentPosition.style.borderRadius = equipmentCellSize / 2 + 'px';
                 equipmentPosition.style.marginLeft = (cellSize - equipmentCellSize) / 2 + 'px';
                 equipmentPosition.style.marginTop = (cellSize - equipmentCellSize) / 2 + 'px';
-                equipmentPosition.title = field.equipment[cellData.equipment];
+                equipmentPosition.title = field.equipment.find(function(equipment){ return equipment.id === cellData.equipment; }).name;
 
                 cell.appendChild(equipmentPosition);
             }

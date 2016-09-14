@@ -277,10 +277,7 @@ function setPercent(info, done = 0, total = 1)
 }
 function generateMazeWithoutLoops(hSize, vSize)
 {
-    var logInfo =
-        {
-            'message': 'Изучаем топологию сети'
-        };
+    var logInfo = { 'message': 'Изучаем топологию сети' };
 
     setPercent(logInfo);
 
@@ -360,10 +357,7 @@ function generateMazeWithoutLoops(hSize, vSize)
 }
 function addEquipment(field)
 {
-    var logInfo =
-        {
-            'message': 'Находим подключенное оборудование'
-        };
+    var logInfo = { 'message': 'Находим подключенное оборудование' };
 
     setPercent(logInfo);
 
@@ -384,7 +378,7 @@ function addEquipment(field)
         cell.equipment = equipment[i].id;
         cell.color = equipment[i].color;
 
-        field.equipment.push({'id': equipment[i].id, 'pos': pos});
+        field.equipment.push({'id': equipment[i].id, 'pos': pos, 'name': equipment[i].name});
 
         if (!i)
         {
@@ -398,10 +392,7 @@ function addEquipment(field)
 }
 function removeBorders(field, ratio)
 {
-    var logInfo =
-        {
-            'message': 'Ищем вспомогательные подключения'
-        };
+    var logInfo = { 'message': 'Ищем вспомогательные подключения' };
 
     setPercent(logInfo);
 
@@ -498,8 +489,12 @@ function extendZones(field)
         pushColor(field.cells, queueElem, queue);
     }
 }
-function setHackePosition(field)
+function setHackerPosition(field)
 {
+    var logInfo = { 'message': 'Подключаемся к системе' };
+
+    setPercent(logInfo, 1, 1);
+
     var x = randomIdx(0, field.vSize);
     var y = randomIdx(0, field.hSize);
     field.playerPosition = {'x': x, 'y': y};
@@ -510,7 +505,7 @@ function generateHackField(params)
     addEquipment(field);
     removeBorders(field, 0.1);
     extendZones(field);
-    setHackePosition(field);
+    setHackerPosition(field);
 
     var message = {};
     message.type = 'show_hack_field';
