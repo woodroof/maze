@@ -258,8 +258,9 @@ function shuffle(array)
 
     return array;
 }
-function setPercent(info, percent)
+function setPercent(info, done = 0, total = 1)
 {
+    var percent = (done * 100 / total) | 0;
     if (info.reportedPercent === undefined || info.reportedPercent !== percent)
     {
         var logFunction = info.reportedPercent === undefined ? log : logReplace;
@@ -281,7 +282,7 @@ function generateMazeWithoutLoops(hSize, vSize)
             'message': 'Изучаем топологию сети'
         };
 
-    setPercent(logInfo, 0);
+    setPercent(logInfo);
 
     var maze = {};
     maze.hSize = hSize;
@@ -306,7 +307,7 @@ function generateMazeWithoutLoops(hSize, vSize)
             }
             else
             {
-                allowedBorders.push(i * hSize * 2 + j * 2);
+                allowedBorders.push({'i': i, 'j': j, 'horizontal': true});
             }
             if (i === vSize - 1)
             {
@@ -314,7 +315,7 @@ function generateMazeWithoutLoops(hSize, vSize)
             }
             else
             {
-                allowedBorders.push(i * hSize * 2 + j * 2 + 1);
+                allowedBorders.push({'i': i, 'j': j, 'horizontal': false});
             }
             maze.cells[i].push(newCell);
         }
@@ -324,14 +325,10 @@ function generateMazeWithoutLoops(hSize, vSize)
 
     for (var allowedIdx = 0; allowedIdx < allowedBorders.length; ++allowedIdx)
     {
-        var borderIdx = allowedBorders[allowedIdx];
+        var border = allowedBorders[allowedIdx];
 
-        var horizontal = borderIdx % 2 === 0;
-        var hIdx = (borderIdx / (2 * hSize)) | 0;
-        var vIdx = ((borderIdx / 2) | 0) % hSize;
-
-        var cell = maze.cells[hIdx][vIdx];
-        if (horizontal)
+        var cell = maze.cells[border.i][border.j];
+        if (border.horizontal)
         {
             cell.right = true;
         }
@@ -343,7 +340,7 @@ function generateMazeWithoutLoops(hSize, vSize)
 
         if (!checkConnections(maze))
         {
-            if (horizontal)
+            if (border.horizontal)
             {
                 cell.right = false;
             }
@@ -354,10 +351,10 @@ function generateMazeWithoutLoops(hSize, vSize)
             --maze.borderCount;
         }
 
-        setPercent(logInfo, ((allowedIdx + 1) / allowedBorders.length * 100) | 0);
+        setPercent(logInfo, allowedIdx + 1, allowedBorders.length);
     }
 
-    setPercent(logInfo, 100);
+    setPercent(logInfo, 1, 1);
 
     return maze;
 }
@@ -368,7 +365,7 @@ function addEquipment(field)
             'message': 'Находим подключенное оборудование'
         };
 
-    setPercent(logInfo, 0);
+    setPercent(logInfo);
 
     field.equipment = [];
 
@@ -394,15 +391,67 @@ function addEquipment(field)
             field.entry_point = pos;
         }
 
-        setPercent(logInfo, ((i + 1) / equipment.length * 100) | 0);
+        setPercent(logInfo, i + 1, equipment.length);
     }
 
-    setPercent(logInfo, 100);
+    setPercent(logInfo, 1, 1);
+}
+function removeBorders(maze, ratio)
+{
+    var logInfo =
+        {
+            'message': 'Ищем вспомогательные подключения'
+        };
+
+    setPercent(logInfo);
+
+    var bordersToRemove = maze.borderCount * ratio | 0;
+    if (bordersToRemove)
+    {
+        var borders = [];
+
+        for (var i = 0; i < maze.vSize; ++i)
+        {
+            for (var j = 0; j < maze.hSize; ++j)
+            {
+                if (j != maze.hSize - 1 && maze.cells[i][j].right)
+                {
+                    borders.push({'i': i, 'j': j, 'horizontal': true});
+                }
+                if (i != maze.vSize - 1 && maze.cells[i][j].bottom)
+                {
+                    borders.push({'i': i, 'j': j, 'horizontal': false});
+                }
+            }
+        }
+
+        borders = shuffle(borders);
+
+        for (var i = 0; i < bordersToRemove; ++i)
+        {
+            var border = borders[i];
+            if (border.horizontal)
+            {
+                maze.cells[border.i][border.j].right = false;
+            }
+            else
+            {
+                maze.cells[border.i][border.j].bottom = false;
+            }
+
+            setPercent(logInfo, i + 1, bordersToRemove);
+        }
+    }
+
+    setPercent(logInfo, 1, 1);
+
+    maze.borderCount -= bordersToRemove;
 }
 function generateHackField(params)
 {
     var field = generateMazeWithoutLoops(params.hSize, params.vSize);
     addEquipment(field);
+    removeBorders(field, 0.1);
 
     var message = {};
     message.type = 'show_hack_field';
