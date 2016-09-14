@@ -4,7 +4,6 @@
  * - Зона видимого
  * - Зона отключённого
  * - Разметка расстояния от C&C и отображение связей разной толщины
- * - Выбор и отображение местоположения игрока
  * - Перемещение
  * - Таймер на завершение
  * - Удаление связей (переразметка расстояния, определение отключённых зон, сохранение оригинальных связей)
@@ -24,6 +23,7 @@ var hSize = 30;
 var vSize = 30;
 var cellSize = 15;
 var equipmentCellSize = 11;
+var playerPositionSize = 7;
 var buttonHeight = 50;
 var fieldZoneSize = vSize * cellSize + 2;
 var actionZoneHeight = buttonHeight * 2 + 5;
@@ -117,23 +117,38 @@ function showHackField(field)
             }
             if (cellData.equipment !== undefined)
             {
-                var equipment_pos = document.createElement('div');
+                var equipmentPosition = document.createElement('div');
                 if (cellData.equipment === 'c&c')
                 {
-                    equipment_pos.className = 'cc';
+                    equipmentPosition.className = 'cc';
                 }
                 else
                 {
-                    equipment_pos.className = 'equipment';
+                    equipmentPosition.className = 'equipment';
                 }
-                equipment_pos.style.width = equipmentCellSize + 'px';
-                equipment_pos.style.height = equipmentCellSize + 'px';
-                equipment_pos.style.borderRadius = equipmentCellSize / 2 + 'px';
-                equipment_pos.style.marginLeft = (cellSize - equipmentCellSize) / 2 + 'px';
-                equipment_pos.style.marginTop = (cellSize - equipmentCellSize) / 2 + 'px';
-                equipment_pos.title = field.equipment[cellData.equipment];
+                equipmentPosition.style.width = equipmentCellSize + 'px';
+                equipmentPosition.style.height = equipmentCellSize + 'px';
+                equipmentPosition.style.borderRadius = equipmentCellSize / 2 + 'px';
+                equipmentPosition.style.marginLeft = (cellSize - equipmentCellSize) / 2 + 'px';
+                equipmentPosition.style.marginTop = (cellSize - equipmentCellSize) / 2 + 'px';
+                equipmentPosition.title = field.equipment[cellData.equipment];
 
-                cell.appendChild(equipment_pos);
+                cell.appendChild(equipmentPosition);
+            }
+            if (
+                field.playerPosition.x === i &&
+                field.playerPosition.y === j)
+            {
+                var playerPosition = document.createElement('div');
+                playerPosition.className = 'player';
+                playerPosition.style.width = playerPositionSize + 'px';
+                playerPosition.style.height = playerPositionSize + 'px';
+                playerPosition.style.borderRadius = playerPositionSize / 2 + 'px';
+                playerPosition.style.marginLeft = (cellSize - playerPositionSize) / 2 + 'px';
+                playerPosition.style.marginTop = (cellSize - playerPositionSize) / 2 + 'px';
+                playerPosition.title = 'Ваше местоположение';
+
+                cell.appendChild(playerPosition);
             }
 
             row.appendChild(cell);

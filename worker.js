@@ -1,144 +1,144 @@
 var equipment = [
     {
-        "id": "c&c",
-        "name": "Командный центр",
-        "color": "blue"
+        'id': 'c&c',
+        'name': 'Командный центр',
+        'color': 'blue'
     },
     {
-        "id": "reactor1",
-        "name": "Реактор 1",
-        "color": "yellow"
+        'id': 'reactor1',
+        'name': 'Реактор 1',
+        'color': 'yellow'
     },
     {
-        "id": "reactor2",
-        "name": "Реактор 2",
-        "color": "yellow"
+        'id': 'reactor2',
+        'name': 'Реактор 2',
+        'color': 'yellow'
     },
     {
-        "id": "spaceport",
-        "name": "Космопорт",
-        "color": "blue"
+        'id': 'spaceport',
+        'name': 'Космопорт',
+        'color': 'blue'
     },
     {
-        "id": "squadron1",
-        "name": "Эскадрилья 1",
-        "color": "blue"
+        'id': 'squadron1',
+        'name': 'Эскадрилья 1',
+        'color': 'blue'
     },
     {
-        "id": "squadron2",
-        "name": "Эскадрилья 2",
-        "color": "blue"
+        'id': 'squadron2',
+        'name': 'Эскадрилья 2',
+        'color': 'blue'
     },
     {
-        "id": "squadron3",
-        "name": "Эскадрилья 3",
-        "color": "blue"
+        'id': 'squadron3',
+        'name': 'Эскадрилья 3',
+        'color': 'blue'
     },
     {
-        "id": "squadron4",
-        "name": "Эскадрилья 4",
-        "color": "blue"
+        'id': 'squadron4',
+        'name': 'Эскадрилья 4',
+        'color': 'blue'
     },
     {
-        "id": "weapon1",
-        "name": "Орудие 1",
-        "color": "blue"
+        'id': 'weapon1',
+        'name': 'Орудие 1',
+        'color': 'blue'
     },
     {
-        "id": "weapon2",
-        "name": "Орудие 2",
-        "color": "blue"
+        'id': 'weapon2',
+        'name': 'Орудие 2',
+        'color': 'blue'
     },
     {
-        "id": "weapon3",
-        "name": "Орудие 3",
-        "color": "blue"
+        'id': 'weapon3',
+        'name': 'Орудие 3',
+        'color': 'blue'
     },
     {
-        "id": "weapon4",
-        "name": "Орудие 4",
-        "color": "blue"
+        'id': 'weapon4',
+        'name': 'Орудие 4',
+        'color': 'blue'
     },
     {
-        "id": "radar",
-        "name": "Радар",
-        "color": "blue"
+        'id': 'radar',
+        'name': 'Радар',
+        'color': 'blue'
     },
     {
-        "id": "observatory",
-        "name": "Система наблюдения",
-        "color": "blue"
+        'id': 'observatory',
+        'name': 'Система наблюдения',
+        'color': 'blue'
     },
     {
-        "id": "transmitter1",
-        "name": "Тахионный передатчик 1",
-        "color": "blue"
+        'id': 'transmitter1',
+        'name': 'Тахионный передатчик 1',
+        'color': 'blue'
     },
     {
-        "id": "transmitter2",
-        "name": "Тахионный передатчик 2",
-        "color": "blue"
+        'id': 'transmitter2',
+        'name': 'Тахионный передатчик 2',
+        'color': 'blue'
     },
     {
-        "id": "shield1",
-        "name": "Генератор щита 1",
-        "color": "blue"
+        'id': 'shield1',
+        'name': 'Генератор щита 1',
+        'color': 'blue'
     },
     {
-        "id": "shield2",
-        "name": "Генератор щита 2",
-        "color": "blue"
+        'id': 'shield2',
+        'name': 'Генератор щита 2',
+        'color': 'blue'
     },
     {
-        "id": "beacon",
-        "name": "Гипермаяк",
-        "color": "blue"
+        'id': 'beacon',
+        'name': 'Гипермаяк',
+        'color': 'blue'
     },
     {
-        "id": "close_range_weapon",
-        "name": "Орудия ближнего боя",
-        "color": "blue"
+        'id': 'close_range_weapon',
+        'name': 'Орудия ближнего боя',
+        'color': 'blue'
     },
     {
-        "id": "life_support",
-        "name": "Система жизнеобеспечения",
-        "color": "grey"
+        'id': 'life_support',
+        'name': 'Система жизнеобеспечения',
+        'color': 'grey'
     },
     {
-        "id": "hyperdrive",
-        "name": "Гипердвигатель",
-        "color": "grey"
+        'id': 'hyperdrive',
+        'name': 'Гипердвигатель',
+        'color': 'grey'
     },
     {
-        "id": "maneuvering_thrusters",
-        "name": "Маневровые двигатели",
-        "color": "grey"
+        'id': 'maneuvering_thrusters',
+        'name': 'Маневровые двигатели',
+        'color': 'grey'
     },
     {
-        "id": "drive1",
-        "name": "Двигатель 1",
-        "color": "grey"
+        'id': 'drive1',
+        'name': 'Двигатель 1',
+        'color': 'grey'
     },
     {
-        "id": "drive2",
-        "name": "Двигатель 2",
-        "color": "grey"
+        'id': 'drive2',
+        'name': 'Двигатель 2',
+        'color': 'grey'
     },
     // Всякое левое
     {
-        "id": "water storage",
-        "name": "Хранилище воды",
-        "color": "red"
+        'id': 'water storage',
+        'name': 'Хранилище воды',
+        'color': 'red'
     },
     {
-        "id": "restaurant",
-        "name": "Столовая",
-        "color": "green"
+        'id': 'restaurant',
+        'name': 'Столовая',
+        'color': 'green'
     },
     {
-        "id": "waste_recycling",
-        "name": "Системы переработки мусора",
-        "color": "brown"
+        'id': 'waste_recycling',
+        'name': 'Системы переработки мусора',
+        'color': 'brown'
     }
 ];
 
@@ -498,12 +498,19 @@ function extendZones(field)
         pushColor(field.cells, queueElem, queue);
     }
 }
+function setHackePosition(field)
+{
+    var x = randomIdx(0, field.vSize);
+    var y = randomIdx(0, field.hSize);
+    field.playerPosition = {'x': x, 'y': y};
+}
 function generateHackField(params)
 {
     var field = generateMazeWithoutLoops(params.hSize, params.vSize);
     addEquipment(field);
     removeBorders(field, 0.1);
     extendZones(field);
+    setHackePosition(field);
 
     var message = {};
     message.type = 'show_hack_field';
