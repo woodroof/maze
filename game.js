@@ -25,6 +25,7 @@ var vSize = 30;
 var cellSize = 15;
 var equipmentCellSize = 11;
 var buttonHeight = 50;
+var fieldZoneSize = vSize * cellSize + 2;
 var actionZoneHeight = buttonHeight * 2 + 5;
 var logWidth = 400;
 
@@ -158,14 +159,14 @@ function showHackerGreeting()
 
     var logZone = document.createElement('div');
     logZone.className = 'log_zone';
-    logZone.style.height = vSize * cellSize + 2 + actionZoneHeight + 'px'
-    logZone.style.width = logWidth + 'px';
+    logZone.style.height = fieldZoneSize + actionZoneHeight - 4 + 'px'
+    logZone.style.padding = '2px';
+    logZone.style.width = logWidth - 4 + 'px';
 
     var logField = document.createElement('div');
     logField.id = 'log';
-    logField.style.margin = '2px';
     logField.style.borderWidth = '2px';
-    logField.style.height = vSize * cellSize + 2 + actionZoneHeight - 8 + 'px';
+    logField.style.height = fieldZoneSize + actionZoneHeight - 8 + 'px';
     logField.className = 'log';
 
     logZone.appendChild(logField);
@@ -178,19 +179,19 @@ function showHackerGreeting()
 
     var fieldZone = document.createElement('div');
     fieldZone.id = 'field_zone';
-    fieldZone.style.height = vSize * cellSize + 2 + 'px';
+    fieldZone.style.height = fieldZoneSize + 'px';
 
     zone.appendChild(fieldZone);
 
     var actionZone = document.createElement('div');
     actionZone.className = 'action_zone';
     actionZone.style.marginRight = logWidth + 'px';
-    actionZone.style.height = actionZoneHeight;
+    actionZone.style.height = actionZoneHeight - 4 + 'px';
+    actionZone.style.padding = '2px 0 2px 2px';
 
     var actionField = document.createElement('div');
     actionField.id = 'actions';
     actionField.className = 'actions';
-    actionField.style.margin = '2px 0 2px 2px';
     actionField.style.borderWidth = '2px';
     actionField.style.height = actionZoneHeight - 8 + 'px';
 
