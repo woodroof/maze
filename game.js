@@ -2,16 +2,15 @@
  * - Зона неизвестного
  * - Зона устаревшего
  * - Зона видимого
+ * - Зона отключённого
+ * - Разметка расстояния от C&C и отображение связей разной толщины
+ * - Выбор и отображение местоположения игрока
  * - Перемещение
  * - Таймер на завершение
- * - Удаление связей
+ * - Удаление связей (переразметка расстояния, определение отключённых зон, сохранение оригинальных связей)
  * - Проверка связности, завершение по нахождению в отключенной подсети
  * - Игра инженера (своя зона видимого и устаревшего, восстановление связей)
  * - Рестарт игры
- * - Отображение сети как сети
- * Желательно:
- * - Настройка внешнего вида
- * - Описания оборудования (более специфичные, hover)
  * Опционально:
  * - Сообщения о нахождении оборудования
  * - "Бонусы" (положительные и отрицательные)
@@ -24,6 +23,9 @@ var worker;
 var hSize = 30;
 var vSize = 30;
 var cellSize = 15;
+var equipmentCellSize = 11;
+var buttonHeight = 50;
+var actionZoneHeight = buttonHeight * 2 + 5;
 var logWidth = 400;
 
 function log(text)
@@ -61,24 +63,24 @@ function getColor(name)
 }
 function showHackField(field)
 {
-    var mazeImage = document.getElementById('field');
-    if (mazeImage !== null)
+    var fieldImage = document.getElementById('field');
+    if (fieldImage !== null)
     {
-        mazeImage.innerHTML = '';
+        fieldImage.innerHTML = '';
     }
     else
     {
-        mazeImage = document.createElement('div');
-        mazeImage.id = 'field';
-        mazeImage.className = 'hack_field';
-        mazeImage.style.width = field.hSize * cellSize + 'px';
-        document.getElementById('field_zone').appendChild(mazeImage);
+        fieldImage = document.createElement('div');
+        fieldImage.id = 'field';
+        fieldImage.className = 'field';
+        fieldImage.style.width = field.hSize * cellSize + 'px';
+        document.getElementById('field_zone').appendChild(fieldImage);
     }
 
     for (var i = 0; i < field.vSize; ++i)
     {
         var row = document.createElement('div');
-        mazeImage.appendChild(row);
+        fieldImage.appendChild(row);
 
         for (var j = 0; j < field.hSize; ++j)
         {
@@ -86,25 +88,27 @@ function showHackField(field)
 
             var cell = document.createElement('div');
             cell.className = 'field_cell';
-            if (cellData.right)
+            cell.style.width = cellSize + 'px';
+            cell.style.height = cellSize + 'px';
+            if (!cellData.right)
             {
-                cell.style.width = cellSize - 1 + 'px';
-                cell.style.borderRightWidth = '1px';
+                var hConnection = document.createElement('div');
+                hConnection.className = 'connection';
+                hConnection.style.width = cellSize + 1 + 'px';
+                hConnection.style.marginLeft = cellSize / 2 | 0 + 'px';
+                hConnection.style.height = '1px';
+                hConnection.style.marginTop = cellSize / 2 | 0 + 'px';
+                cell.appendChild(hConnection);
             }
-            else
+            if (!cellData.bottom)
             {
-                cell.style.width = cellSize + 'px';
-                cell.style.borderRightWidth = 0;
-            }
-            if (cellData.bottom)
-            {
-                cell.style.height = cellSize - 1 + 'px';
-                cell.style.borderBottomWidth = '1px';
-            }
-            else
-            {
-                cell.style.height = cellSize + 'px';
-                cell.style.borderBottomWidth = 0;
+                var vConnection = document.createElement('div');
+                vConnection.className = 'connection';
+                vConnection.style.width = '1px';
+                vConnection.style.marginLeft = cellSize / 2 | 0 + 'px';
+                vConnection.style.height = cellSize + 1 + 'px';
+                vConnection.style.marginTop = cellSize / 2 | 0 + 'px';
+                cell.appendChild(vConnection);
             }
             if (cellData.color !== undefined)
             {
@@ -112,16 +116,21 @@ function showHackField(field)
             }
             if (cellData.equipment !== undefined)
             {
-                var equipment_cell_size = (((cellSize / 2) | 0) - 2) * 2;
-
                 var equipment_pos = document.createElement('div');
-                equipment_pos.className = 'equipment';
-                equipment_pos.style.width = equipment_cell_size + 'px';
-                equipment_pos.style.height = equipment_cell_size + 'px';
-                equipment_pos.style.borderRadius = equipment_cell_size / 2 + 'px';
-                equipment_pos.style.marginLeft = (cellSize - equipment_cell_size) / 2 | 0 + 'px';
-                equipment_pos.style.marginTop = (cellSize - equipment_cell_size) / 2 | 0 + 'px';
-                equipment_pos.title = cellData.equipment;
+                if (cellData.equipment === 'c&c')
+                {
+                    equipment_pos.className = 'cc';
+                }
+                else
+                {
+                    equipment_pos.className = 'equipment';
+                }
+                equipment_pos.style.width = equipmentCellSize + 'px';
+                equipment_pos.style.height = equipmentCellSize + 'px';
+                equipment_pos.style.borderRadius = equipmentCellSize / 2 + 'px';
+                equipment_pos.style.marginLeft = (cellSize - equipmentCellSize) / 2 + 'px';
+                equipment_pos.style.marginTop = (cellSize - equipmentCellSize) / 2 + 'px';
+                equipment_pos.title = field.equipment[cellData.equipment];
 
                 cell.appendChild(equipment_pos);
             }
@@ -132,7 +141,7 @@ function showHackField(field)
 }
 function startHackGame()
 {
-    document.getElementById('action_zone').innerHTML = '';
+    document.getElementById('actions').innerHTML = '';
 
     var message = {};
     message.type = 'generate_hack_field';
@@ -145,14 +154,23 @@ function startHackGame()
 function showHackerGreeting()
 {
     document.body.innerHTML = '';
-    document.body.style.minWidth = logWidth + hSize * cellSize + 1;
+    document.body.style.minWidth = logWidth + hSize * cellSize + 2;
+
+    var logZone = document.createElement('div');
+    logZone.className = 'log_zone';
+    logZone.style.height = vSize * cellSize + 2 + actionZoneHeight + 'px'
+    logZone.style.width = logWidth + 'px';
 
     var logField = document.createElement('div');
     logField.id = 'log';
-    logField.className = 'hack_log';
-    logField.style.width = logWidth + 'px';
+    logField.style.margin = '2px';
+    logField.style.borderWidth = '2px';
+    logField.style.height = vSize * cellSize + 2 + actionZoneHeight - 8 + 'px';
+    logField.className = 'log';
 
-    document.body.appendChild(logField);
+    logZone.appendChild(logField);
+
+    document.body.appendChild(logZone);
 
     var zone = document.createElement('div');
     zone.id = 'zone';
@@ -160,21 +178,29 @@ function showHackerGreeting()
 
     var fieldZone = document.createElement('div');
     fieldZone.id = 'field_zone';
-    fieldZone.style.height = vSize * cellSize + 1 + 'px';
+    fieldZone.style.height = vSize * cellSize + 2 + 'px';
 
     zone.appendChild(fieldZone);
 
     var actionZone = document.createElement('div');
-    actionZone.id = 'action_zone';
     actionZone.className = 'action_zone';
+    actionZone.style.marginRight = logWidth + 'px';
+    actionZone.style.height = actionZoneHeight;
 
-    var hackButton = document.createElement('input');
-    hackButton.className = 'hack_button';
+    var actionField = document.createElement('div');
+    actionField.id = 'actions';
+    actionField.className = 'actions';
+    actionField.style.margin = '2px 0 2px 2px';
+    actionField.style.borderWidth = '2px';
+    actionField.style.height = actionZoneHeight - 8 + 'px';
+
+    var hackButton = document.createElement('div');
+    hackButton.className = 'button';
     hackButton.onclick = function() { startHackGame(); };
-    hackButton.type = 'button';
-    hackButton.value = 'Взломать!';
+    hackButton.innerText = 'Взломать!';
 
-    actionZone.appendChild(hackButton);
+    actionField.appendChild(hackButton);
+    actionZone.appendChild(actionField);
 
     zone.appendChild(actionZone);
 

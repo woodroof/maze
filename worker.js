@@ -381,7 +381,7 @@ function addEquipment(field)
         while (field.cells[pos.x][pos.y].equipment);
 
         var cell = field.cells[pos.x][pos.y];
-        cell.equipment = equipment[i].name;
+        cell.equipment = equipment[i].id;
         cell.color = equipment[i].color;
 
         field.equipment.push({'id': equipment[i].id, 'pos': pos});
