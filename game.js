@@ -1,13 +1,13 @@
 /* TODO:
+ * - Перемещение
+ * - Таймер на завершение
+ * - Разметка расстояния от C&C и отображение связей разной толщины
+ * - Удаление связей (переразметка расстояния, определение отключённых зон, сохранение оригинальных связей)
+ * - Проверка связности, завершение по нахождению в отключенной подсети
  * - Зона неизвестного
  * - Зона устаревшего
  * - Зона видимого
  * - Зона отключённого
- * - Разметка расстояния от C&C и отображение связей разной толщины
- * - Перемещение
- * - Таймер на завершение
- * - Удаление связей (переразметка расстояния, определение отключённых зон, сохранение оригинальных связей)
- * - Проверка связности, завершение по нахождению в отключенной подсети
  * - Игра инженера (своя зона видимого и устаревшего, восстановление связей)
  * - Рестарт игры
  * - Сохранение промежуточного состояния
@@ -91,11 +91,14 @@ function showHackField(field)
     }
     else
     {
+        var fieldZone = document.getElementById('field_zone');
+        fieldZone.innerHTML = '';
+
         fieldImage = document.createElement('div');
         fieldImage.id = 'field';
         fieldImage.className = 'field';
         fieldImage.style.width = field.hSize * cellSize + 'px';
-        document.getElementById('field_zone').appendChild(fieldImage);
+        fieldZone.appendChild(fieldImage);
     }
 
     for (var i = 0; i < field.vSize; ++i)
@@ -221,6 +224,12 @@ function showHackerGreeting()
     fieldZone.id = 'field_zone';
     fieldZone.style.height = fieldZoneSize + 'px';
 
+    var status = document.createElement('div');
+    status.className = 'status';
+    status.innerText = 'All systems online';
+    status.style.marginRight = logWidth + 'px';
+    fieldZone.appendChild(status);
+
     zone.appendChild(fieldZone);
 
     var actionZone = document.createElement('div');
@@ -238,7 +247,7 @@ function showHackerGreeting()
     var hackButton = document.createElement('div');
     hackButton.className = 'button';
     hackButton.onclick = function() { startHackGame(); };
-    hackButton.innerText = 'Взломать!';
+    hackButton.innerText = 'Сломать!';
 
     actionField.appendChild(hackButton);
     actionZone.appendChild(actionField);
