@@ -215,13 +215,13 @@ function checkConnections(field)
             ++markCount;
 
             // right
-            if (vIdx !== field.hSize - 1 && !field.cells[hIdx][vIdx].right && marks[hIdx][vIdx + 1] === 0)
+            if (!field.cells[hIdx][vIdx].right && marks[hIdx][vIdx + 1] === 0)
             {
                 hIndexes.push(hIdx);
                 vIndexes.push(vIdx + 1);
             }
             // down
-            if (hIdx !== field.vSize - 1 && !field.cells[hIdx][vIdx].bottom && marks[hIdx + 1][vIdx] === 0)
+            if (!field.cells[hIdx][vIdx].bottom && marks[hIdx + 1][vIdx] === 0)
             {
                 hIndexes.push(hIdx + 1);
                 vIndexes.push(vIdx);
@@ -307,7 +307,7 @@ function generateMazeWithoutLoops(hSize, vSize)
             }
             else
             {
-                allowedBorders.push({'i': i, 'j': j, 'horizontal': true});
+                allowedBorders.push({'x': i, 'y': j, 'horizontal': true});
             }
             if (i === vSize - 1)
             {
@@ -315,7 +315,7 @@ function generateMazeWithoutLoops(hSize, vSize)
             }
             else
             {
-                allowedBorders.push({'i': i, 'j': j, 'horizontal': false});
+                allowedBorders.push({'x': i, 'y': j, 'horizontal': false});
             }
             maze.cells[i].push(newCell);
         }
@@ -327,7 +327,7 @@ function generateMazeWithoutLoops(hSize, vSize)
     {
         var border = allowedBorders[allowedIdx];
 
-        var cell = maze.cells[border.i][border.j];
+        var cell = maze.cells[border.x][border.y];
         if (border.horizontal)
         {
             cell.right = true;
@@ -396,7 +396,7 @@ function addEquipment(field)
 
     setPercent(logInfo, 1, 1);
 }
-function removeBorders(maze, ratio)
+function removeBorders(field, ratio)
 {
     var logInfo =
         {
@@ -405,22 +405,22 @@ function removeBorders(maze, ratio)
 
     setPercent(logInfo);
 
-    var bordersToRemove = maze.borderCount * ratio | 0;
+    var bordersToRemove = field.borderCount * ratio | 0;
     if (bordersToRemove)
     {
         var borders = [];
 
-        for (var i = 0; i < maze.vSize; ++i)
+        for (var i = 0; i < field.vSize; ++i)
         {
-            for (var j = 0; j < maze.hSize; ++j)
+            for (var j = 0; j < field.hSize; ++j)
             {
-                if (j != maze.hSize - 1 && maze.cells[i][j].right)
+                if (j != field.hSize - 1 && field.cells[i][j].right)
                 {
-                    borders.push({'i': i, 'j': j, 'horizontal': true});
+                    borders.push({'x': i, 'y': j, 'horizontal': true});
                 }
-                if (i != maze.vSize - 1 && maze.cells[i][j].bottom)
+                if (i != field.vSize - 1 && field.cells[i][j].bottom)
                 {
-                    borders.push({'i': i, 'j': j, 'horizontal': false});
+                    borders.push({'x': i, 'y': j, 'horizontal': false});
                 }
             }
         }
@@ -432,11 +432,11 @@ function removeBorders(maze, ratio)
             var border = borders[i];
             if (border.horizontal)
             {
-                maze.cells[border.i][border.j].right = false;
+                field.cells[border.x][border.y].right = false;
             }
             else
             {
-                maze.cells[border.i][border.j].bottom = false;
+                field.cells[border.x][border.y].bottom = false;
             }
 
             setPercent(logInfo, i + 1, bordersToRemove);
@@ -445,13 +445,65 @@ function removeBorders(maze, ratio)
 
     setPercent(logInfo, 1, 1);
 
-    maze.borderCount -= bordersToRemove;
+    field.borderCount -= bordersToRemove;
+}
+function pushColor(cells, pos, queue)
+{
+    var cell = cells[pos.x][pos.y];
+
+    // right
+    if (!cell.right)
+    {
+        queue.push({'x': pos.x, 'y': pos.y + 1, 'color': cell.color});
+    }
+    // down
+    if (!cell.bottom)
+    {
+        queue.push({'x': pos.x + 1, 'y': pos.y, 'color': cell.color});
+    }
+    // left
+    if (pos.y !== 0 && !cells[pos.x][pos.y - 1].right)
+    {
+        queue.push({'x': pos.x, 'y': pos.y - 1, 'color': cell.color});
+    }
+    // up
+    if (pos.x !== 0 && !cells[pos.x - 1][pos.y].bottom)
+    {
+        queue.push({'x': pos.x - 1, 'y': pos.y, 'color': cell.color});
+    }
+}
+function extendZones(field)
+{
+    var queue = [];
+    for (var i = 0; i < field.equipment.length; ++i)
+    {
+        pushColor(field.cells, field.equipment[i].pos, queue);
+    }
+
+    while (queue.length)
+    {
+        var idx = randomIdx(0, queue.length - 1);
+        var queueElem = queue[idx];
+        queue.splice(idx, 1);
+
+        var nextCell = field.cells[queueElem.x][queueElem.y];
+
+        if (nextCell.color !== undefined)
+        {
+            continue;
+        }
+
+        nextCell.color = queueElem.color;
+
+        pushColor(field.cells, queueElem, queue);
+    }
 }
 function generateHackField(params)
 {
     var field = generateMazeWithoutLoops(params.hSize, params.vSize);
     addEquipment(field);
     removeBorders(field, 0.1);
+    extendZones(field);
 
     var message = {};
     message.type = 'show_hack_field';
