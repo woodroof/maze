@@ -495,8 +495,8 @@ function setHackerPosition(field)
 
     setPercent(logInfo, 1, 1);
 
-    var x = randomIdx(0, field.vSize);
-    var y = randomIdx(0, field.hSize);
+    var x = randomIdx(0, field.vSize - 1);
+    var y = randomIdx(0, field.hSize - 1);
     field.playerPosition = {'x': x, 'y': y};
 }
 function generateHackField(params)
