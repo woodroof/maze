@@ -27,13 +27,13 @@
 	.cc
 	{
 		background-color: blue;
-		position: relative;
+		position: absolute;
 		z-index: 2;
 	}
 	.equipment
 	{
 		background-color: green;
-		position: relative;
+		position: absolute;
 		z-index: 2;
 	}
 	.player
@@ -60,6 +60,10 @@
 		border-style: solid;
 		border-color: green;
 	}
+	.action_text, .action_timer
+	{
+		font-size: 30px;
+	}
 	.log_zone
 	{
 		float: right;
@@ -77,12 +81,21 @@
 	}
 	.button
 	{
-		margin: 5px;
-		padding: 5px;
+		width: 80px;
 		display: inline-block;
 		border-style: solid;
 		border-width: 1px;
 		border-color: green;
+		cursor: pointer;
+	}
+	.disabled_button
+	{
+		width: 80px;
+		display: inline-block;
+		border-style: solid;
+		border-width: 1px;
+		border-color: grey;
+		color: grey;
 		cursor: pointer;
 	}
 	.connection
@@ -90,6 +103,21 @@
 		background-color: green;
 		position: absolute;
 		z-index: 0;
+	}
+	.game_timer_zone
+	{
+		position: absolute;
+		background-color: black;
+	}
+	.game_timer_block
+	{
+		border-style: solid;
+		border-color: green;
+		overflow: hidden;
+	}
+	.game_timer
+	{
+		font-size: 17px;
 	}
 </style>
 <script src="game.js"></script>

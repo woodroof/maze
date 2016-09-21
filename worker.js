@@ -1,3 +1,6 @@
+var moveTime = 1000;
+var hackTime = 10 * 60 * 1000;
+var field;
 var equipment = [
     {
         'id': 'c&c',
@@ -499,13 +502,90 @@ function setHackerPosition(field)
     var y = randomIdx(0, field.hSize - 1);
     field.playerPosition = {'x': x, 'y': y};
 }
+function addMoveActions(field)
+{
+    var actionLines = [];
+    var actionLine = [];
+    if (field.playerPosition.x && !field.cells[field.playerPosition.x - 1][field.playerPosition.y].bottom)
+    {
+        actionLine.push({'name': 'Вверх', 'action': 'move_up', 'time': moveTime, 'description': 'Перемещаемся вверх'});
+    }
+    else
+    {
+        actionLine.push({'name': 'Вверх'});
+    }
+    actionLines.push(actionLine);
+
+    actionLine = [];
+    if (field.playerPosition.y && !field.cells[field.playerPosition.x][field.playerPosition.y - 1].right)
+    {
+        actionLine.push({'name': 'Влево', 'action': 'move_left', 'time': moveTime, 'description': 'Перемещаемся влево'});
+    }
+    else
+    {
+        actionLine.push({'name': 'Влево'});
+    }
+    if (!field.cells[field.playerPosition.x][field.playerPosition.y].right)
+    {
+        actionLine.push({'name': 'Вправо', 'action': 'move_right', 'time': moveTime, 'description': 'Перемещаемся вправо'});
+    }
+    else
+    {
+        actionLine.push({'name': 'Вправо'});
+    }
+    actionLines.push(actionLine);
+
+    actionLine = [];
+    if (!field.cells[field.playerPosition.x][field.playerPosition.y].bottom)
+    {
+        actionLine.push({'name': 'Вниз', 'action': 'move_down', 'time': moveTime, 'description': 'Перемещаемся вниз'});
+    }
+    else
+    {
+        actionLine.push({'name': 'Вниз'});
+    }
+    actionLines.push(actionLine);
+
+    field.actionBlocks.push(actionLines);
+}
+function setHackActions(field)
+{
+    field.actionBlocks = [];
+
+    addMoveActions(field);
+}
+function setGameEndTime(field)
+{
+    field.gameEndTime = new Date().getTime() + hackTime;
+}
 function generateHackField(params)
 {
-    var field = generateMazeWithoutLoops(params.hSize, params.vSize);
+    field = generateMazeWithoutLoops(params.hSize, params.vSize);
     addEquipment(field);
     removeBorders(field, 0.1);
     extendZones(field);
     setHackerPosition(field);
+    setHackActions(field);
+    setGameEndTime(field);
+
+    var message = {};
+    message.type = 'show_hack_field';
+    message.data = field;
+    postMessage(message);
+}
+function sleep(time)
+{
+    var now = new Date().getTime();
+    while(new Date().getTime() < now + time){}
+}
+function move(dx, dy)
+{
+    sleep(moveTime);
+
+    field.playerPosition.x += dx;
+    field.playerPosition.y += dy;
+
+    setHackActions(field);
 
     var message = {};
     message.type = 'show_hack_field';
@@ -521,6 +601,18 @@ onmessage =
         {
         case 'generate_hack_field':
             generateHackField(msg.params);
+            break;
+        case 'move_left':
+            move(0, -1);
+            break;
+        case 'move_right':
+            move(0, 1);
+            break;
+        case 'move_up':
+            move(-1, 0);
+            break;
+        case 'move_down':
+            move(1, 0);
             break;
         }
     }

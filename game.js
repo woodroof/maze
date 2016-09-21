@@ -1,9 +1,8 @@
 /* TODO:
- * - Перемещение
- * - Таймер на завершение
  * - Разметка расстояния от C&C и отображение связей разной толщины
  * - Удаление связей (переразметка расстояния, определение отключённых зон, сохранение оригинальных связей)
  * - Проверка связности, завершение по нахождению в отключенной подсети
+ * - Завершение взлома по истечении времени
  * - Зона неизвестного
  * - Зона устаревшего
  * - Зона видимого
@@ -12,6 +11,7 @@
  * - Рестарт игры
  * - Сохранение промежуточного состояния
  * Опционально:
+ * - Миниигры на удаление/восстановление связей
  * - Сообщения о нахождении оборудования
  * - "Бонусы" (положительные и отрицательные)
  * - "Честная" видимость
@@ -19,15 +19,20 @@
  */
 
 var worker;
+var gameTimerTimeout;
+var actionTimerTimeout;
 
 var hSize = 30;
 var vSize = 30;
 var cellSize = 15;
 var equipmentCellSize = 11;
 var playerPositionSize = 7;
-var buttonHeight = 50;
-var fieldZoneSize = vSize * cellSize + 2;
-var actionZoneHeight = buttonHeight * 2 + 5;
+var buttonHeight = 30;
+var fieldZoneVSize = vSize * cellSize + 2;
+var fieldZoneHSize = hSize * cellSize + 2;
+var actionZoneHeight = buttonHeight * 3 + 30;
+var timerWidth = 100;
+var timerHeight = 35;
 var logWidth = 500;
 
 function log(text)
@@ -82,8 +87,131 @@ function getTitle(name)
     // brown
     return 'Коричневый сектор';
 }
+function formatSecs(msecs)
+{
+    if (msecs <= 0)
+    {
+        return '0.0';
+    }
+
+    return ((msecs / 1000 | 0) % 60) + '.' + (msecs % 1000 / 100 | 0);
+}
+function updateActionTimerText(timer)
+{
+    timer.innerText = formatSecs(timer.endTime - new Date().getTime());
+}
+function updateActionTimer()
+{
+    var timer = document.getElementById('action_timer');
+    if (timer !== null)
+    {
+        updateActionTimerText(timer);
+        actionTimerTimeout = setTimeout(updateActionTimer, 100);
+    }
+}
+function makeAction(action, description, duration)
+{
+    var actions = document.getElementById('actions');
+    actions.innerHTML = '';
+
+    var actionText = document.createElement('span');
+    actionText.innerText = description + '... ';
+    actionText.className = 'action_text';
+    actions.appendChild(actionText);
+
+    var actionTimer = document.createElement('span');
+    actionTimer.id = 'action_timer';
+    actionTimer.className = 'action_timer';
+    actionTimer.endTime = new Date().getTime() + duration;
+    actions.appendChild(actionTimer);
+
+    updateActionTimer();
+
+    var message = {};
+    message.type = action;
+
+    worker.postMessage(message);
+}
+function createMakeFunction(action, description, duration)
+{
+    return function() { makeAction(action, description, duration) };
+}
+function formatMins(msecs)
+{
+    if (msecs <= 0)
+    {
+        return '0:00';
+    }
+
+    var secs = ((msecs / 1000 | 0) % 60);
+    var text = ((msecs / 60000) | 0) + ':';
+    if (secs < 10)
+    {
+        text += '0';
+    }
+    text += secs;
+
+    return text;
+}
+function updateGameTimerText(timer)
+{
+    timer.innerText = formatMins(timer.endTime - new Date().getTime());
+}
+function updateGameTimer()
+{
+    var timer = document.getElementById('game_timer');
+    if (timer !== null)
+    {
+        updateGameTimerText(timer);
+        gameTimerTimeout = setTimeout(updateGameTimer, 1000);
+    }
+}
 function showHackField(field)
 {
+    window.clearTimeout(actionTimerTimeout);
+
+    var actions = document.getElementById('actions');
+    actions.innerHTML = '';
+    for (var actionBlockIdx = 0; actionBlockIdx < field.actionBlocks.length; ++actionBlockIdx)
+    {
+        var actionBlock = field.actionBlocks[actionBlockIdx];
+
+        var actionBlockElement = document.createElement('div');
+
+        for (var actionLineIdx = 0; actionLineIdx < actionBlock.length; ++actionLineIdx)
+        {
+            var actionLine = actionBlock[actionLineIdx];
+
+            var actionLineElement = document.createElement('div');
+
+            for (var actionIdx = 0; actionIdx < actionLine.length; ++actionIdx)
+            {
+                var action = actionLine[actionIdx];
+
+                var actionButton = document.createElement('div');
+                actionButton.innerText = action.name;
+                if (action.action === undefined)
+                {
+                    actionButton.className = 'disabled_button';
+                }
+                else
+                {
+                    actionButton.onclick = createMakeFunction(action.action, action.description, action.time);
+                    actionButton.className = 'button';
+                }
+                actionButton.style.height = buttonHeight - 10 - 2 + 'px';
+                actionButton.style.padding = '5px';
+                actionButton.style.marginTop = '5px';
+                actionButton.style.marginRight = '5px';
+                actionLineElement.appendChild(actionButton);
+            }
+
+            actionBlockElement.appendChild(actionLineElement);
+        }
+
+        actions.appendChild(actionBlockElement);
+    }
+
     var fieldImage = document.getElementById('field');
     if (fieldImage !== null)
     {
@@ -99,6 +227,37 @@ function showHackField(field)
         fieldImage.className = 'field';
         fieldImage.style.width = field.hSize * cellSize + 'px';
         fieldZone.appendChild(fieldImage);
+    }
+
+    var timer = document.getElementById('game_timer');
+    if (timer !== null)
+    {
+        updateGameTimerText(timer);
+    }
+    else
+    {
+        var timer_zone = document.createElement('div');
+        timer_zone.className = 'game_timer_zone';
+        timer_zone.style.width = timerWidth;
+        timer_zone.style.height = timerHeight;
+        timer_zone.style.padding = '2px';
+        document.getElementById('field_zone').insertBefore(timer_zone, fieldImage);
+
+        var timer_block = document.createElement('div');
+        timer_block.className = 'game_timer_block';
+        timer_block.style.padding = '5px';
+        timer_block.style.borderWidth = '2px';
+        timer_block.style.width = timerWidth - 10 - 4 + 'px';
+        timer_block.style.height = timerHeight - 10 - 4 + 'px';
+        timer_zone.appendChild(timer_block);
+
+        timer = document.createElement('span');
+        timer.id = 'game_timer';
+        timer.endTime = field.gameEndTime;
+        timer.className = 'game_timer';
+        timer_block.appendChild(timer);
+
+        updateGameTimer();
     }
 
     for (var i = 0; i < field.vSize; ++i)
@@ -198,18 +357,18 @@ function startHackGame()
 function showHackerGreeting()
 {
     document.body.innerHTML = '';
-    document.body.style.minWidth = logWidth + hSize * cellSize + 2;
+    document.body.style.minWidth = logWidth + fieldZoneVSize + 2 * (timerWidth + 4);
 
     var logZone = document.createElement('div');
     logZone.className = 'log_zone';
-    logZone.style.height = fieldZoneSize + actionZoneHeight - 4 + 'px'
+    logZone.style.height = fieldZoneHSize + actionZoneHeight - 4 + 'px'
     logZone.style.padding = '2px';
     logZone.style.width = logWidth - 4 + 'px';
 
     var logField = document.createElement('div');
     logField.id = 'log';
     logField.style.borderWidth = '2px';
-    logField.style.height = fieldZoneSize + actionZoneHeight - 8 + 'px';
+    logField.style.height = fieldZoneHSize + actionZoneHeight - 8 + 'px';
     logField.className = 'log';
 
     logZone.appendChild(logField);
@@ -222,7 +381,7 @@ function showHackerGreeting()
 
     var fieldZone = document.createElement('div');
     fieldZone.id = 'field_zone';
-    fieldZone.style.height = fieldZoneSize + 'px';
+    fieldZone.style.height = fieldZoneHSize + 'px';
 
     var status = document.createElement('div');
     status.className = 'status';
@@ -246,6 +405,9 @@ function showHackerGreeting()
 
     var hackButton = document.createElement('div');
     hackButton.className = 'button';
+    hackButton.style.height = buttonHeight - 10 - 2 + 'px';
+    hackButton.style.padding = '5px';
+    hackButton.style.margin = '5px';
     hackButton.onclick = function() { startHackGame(); };
     hackButton.innerText = 'Сломать!';
 
