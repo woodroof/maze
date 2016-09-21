@@ -383,6 +383,11 @@ function addEquipment(field)
 
         field.equipment.push({'id': equipment[i].id, 'pos': pos, 'name': equipment[i].name});
 
+        if (equipment[i].id === 'c&c')
+        {
+            field.commandPosition = pos;
+        }
+
         if (!i)
         {
             field.entry_point = pos;
@@ -441,36 +446,52 @@ function removeBorders(field, ratio)
 
     field.borderCount -= bordersToRemove;
 }
-function pushColor(cells, pos, queue)
+function push(cells, pos, queue, propertyName, valueFunction)
 {
     var cell = cells[pos.x][pos.y];
+    var value = valueFunction(cell);
 
     // right
     if (!cell.right)
     {
-        queue.push({'x': pos.x, 'y': pos.y + 1, 'color': cell.color});
+        queue.push({'x': pos.x, 'y': pos.y + 1});
+        queue[queue.length - 1][propertyName] = value;
     }
     // down
     if (!cell.bottom)
     {
-        queue.push({'x': pos.x + 1, 'y': pos.y, 'color': cell.color});
+        queue.push({'x': pos.x + 1, 'y': pos.y});
+        queue[queue.length - 1][propertyName] = value;
     }
     // left
     if (pos.y !== 0 && !cells[pos.x][pos.y - 1].right)
     {
-        queue.push({'x': pos.x, 'y': pos.y - 1, 'color': cell.color});
+        queue.push({'x': pos.x, 'y': pos.y - 1});
+        queue[queue.length - 1][propertyName] = value;
     }
     // up
     if (pos.x !== 0 && !cells[pos.x - 1][pos.y].bottom)
     {
-        queue.push({'x': pos.x - 1, 'y': pos.y, 'color': cell.color});
+        queue.push({'x': pos.x - 1, 'y': pos.y});
+        queue[queue.length - 1][propertyName] = value;
     }
+}
+function pushColor(cells, pos, queue)
+{
+    push(cells, pos, queue, 'color', function(cell){ return cell.color; });
 }
 function extendZones(field)
 {
+    var logInfo = { 'message': 'Определяем принадлежность узлов' };
+
+    setPercent(logInfo);
+
+    var done = 0;
+
     var queue = [];
     for (var i = 0; i < field.equipment.length; ++i)
     {
+        ++done;
         pushColor(field.cells, field.equipment[i].pos, queue);
     }
 
@@ -489,8 +510,50 @@ function extendZones(field)
 
         nextCell.color = queueElem.color;
 
+        ++done;
         pushColor(field.cells, queueElem, queue);
+
+        setPercent(logInfo, done, field.vSize * field.hSize);
     }
+
+    setPercent(logInfo, 1, 1);
+}
+function pushPriority(cells, pos, queue, priority)
+{
+    push(cells, pos, queue, 'priority', function(cell) { return priority; });
+}
+function determineNodePriorities(field)
+{
+    var logInfo = { 'message': 'Определяем пропускную способность подключений' };
+
+    setPercent(logInfo);
+
+    var queue = [];
+    pushPriority(field.cells, field.commandPosition, queue, 0);
+
+    var done = 1;
+
+    while (queue.length)
+    {
+        var queueElem = queue[0];
+        queue.splice(0, 1);
+
+        var nextCell = field.cells[queueElem.x][queueElem.y];
+
+        if (nextCell.priority !== undefined)
+        {
+            continue;
+        }
+
+        nextCell.priority = queueElem.priority;
+
+        ++done;
+        pushPriority(field.cells, queueElem, queue, queueElem.priority + 1);
+
+        setPercent(logInfo, done, field.vSize * field.hSize);
+    }
+
+    setPercent(logInfo, 1, 1);
 }
 function setHackerPosition(field)
 {
@@ -564,6 +627,7 @@ function generateHackField(params)
     addEquipment(field);
     removeBorders(field, 0.1);
     extendZones(field);
+    determineNodePriorities(field);
     setHackerPosition(field);
     setHackActions(field);
     setGameEndTime(field);

@@ -1,20 +1,19 @@
 /* TODO:
- * - Разметка расстояния от C&C и отображение связей разной толщины
  * - Удаление связей (переразметка расстояния, определение отключённых зон, сохранение оригинальных связей)
  * - Проверка связности, завершение по нахождению в отключенной подсети
- * - Завершение взлома по истечении времени
+ * - Завершение взлома по истечении времени (в том числе проверка при начале другого действия)
  * - Зона неизвестного
  * - Зона устаревшего
- * - Зона видимого
+ * - Зона видимого (до следующей развилки)
  * - Зона отключённого
  * - Игра инженера (своя зона видимого и устаревшего, восстановление связей)
  * - Рестарт игры
  * - Сохранение промежуточного состояния
  * Опционально:
  * - Миниигры на удаление/восстановление связей
+ * - Сообщения о переходе в другой сектор
  * - Сообщения о нахождении оборудования
  * - "Бонусы" (положительные и отрицательные)
- * - "Честная" видимость
  * - Дополнительные возможности (ping? traceroute?)
  */
 
@@ -34,6 +33,9 @@ var actionZoneHeight = buttonHeight * 3 + 30;
 var timerWidth = 100;
 var timerHeight = 35;
 var logWidth = 500;
+
+var singleLevelConnectionCount = 20;
+var levelCount = 3;
 
 function log(text)
 {
@@ -166,6 +168,16 @@ function updateGameTimer()
         gameTimerTimeout = setTimeout(updateGameTimer, 1000);
     }
 }
+function getLevel(priority)
+{
+    var level = levelCount - 1;
+    while (priority < singleLevelConnectionCount * (levelCount - 1))
+    {
+        --level;
+        priority += singleLevelConnectionCount;
+    }
+    return level;
+}
 function showHackField(field)
 {
     window.clearTimeout(actionTimerTimeout);
@@ -284,20 +296,40 @@ function showHackField(field)
 
             if (!cellData.right)
             {
+                var hPriority = cellData.priority;
+                if (j !== field.hSize - 1 && field.cells[i][j + 1].priority > hPriority)
+                {
+                    hPriority = field.cells[i][j + 1].priority;
+                }
+
+                var hLevel = getLevel(hPriority);
+                var height = hLevel < 2 ? 3 : 1;
+
                 var hConnection = document.createElement('div');
-                hConnection.className = 'connection';
+                hConnection.className = 'connection' + hLevel;
+
                 hConnection.style.width = cellSize + 1 + 'px';
                 hConnection.style.marginLeft = cellSize / 2 | 0 + 'px';
-                hConnection.style.height = '1px';
-                hConnection.style.marginTop = cellSize / 2 | 0 + 'px';
+                hConnection.style.height = height + 'px';
+                hConnection.style.marginTop = (cellSize - height) / 2 | 0 + 'px';
                 cell.appendChild(hConnection);
             }
             if (!cellData.bottom)
             {
+                var vPriority = cellData.priority;
+                if (i !== field.vSize - 1 && field.cells[i + 1][j].priority > vPriority)
+                {
+                    vPriority = field.cells[i + 1][j].priority;
+                }
+
+                var vLevel = getLevel(vPriority);
+                var width = vLevel < 2 ? 3 : 1;
+
                 var vConnection = document.createElement('div');
-                vConnection.className = 'connection';
-                vConnection.style.width = '1px';
-                vConnection.style.marginLeft = cellSize / 2 | 0 + 'px';
+                vConnection.className = 'connection' + vLevel;
+
+                vConnection.style.width = width + 'px';
+                vConnection.style.marginLeft = (cellSize - width) / 2 | 0 + 'px';
                 vConnection.style.height = cellSize + 1 + 'px';
                 vConnection.style.marginTop = cellSize / 2 | 0 + 'px';
                 cell.appendChild(vConnection);
@@ -311,7 +343,7 @@ function showHackField(field)
                 }
                 else
                 {
-                    equipmentPosition.className = 'equipment';
+                    equipmentPosition.className = 'equipment' + getLevel(cellData.priority);
                 }
                 equipmentPosition.style.width = equipmentCellSize + 'px';
                 equipmentPosition.style.height = equipmentCellSize + 'px';
