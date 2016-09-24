@@ -9,12 +9,16 @@
  * - Игра инженера (своя зона видимого и устаревшего, восстановление связей)
  * - Рестарт игры
  * - Сохранение промежуточного состояния
+ * - Реальное оборудование
+ * - Заголовок страницы
+ * - Связь с БД
  * Опционально:
- * - Миниигры на удаление/восстановление связей
+ * - Help
  * - Сообщения о переходе в другой сектор
  * - Сообщения о нахождении оборудования
+ * - Миниигры на удаление/восстановление связей
+ * - Миниигры на взлом/починку
  * - "Бонусы" (положительные и отрицательные)
- * - Дополнительные возможности (ping? traceroute?)
  */
 
 var worker;
@@ -189,12 +193,15 @@ function showHackField(field)
         var actionBlock = field.actionBlocks[actionBlockIdx];
 
         var actionBlockElement = document.createElement('div');
+        actionBlockElement.className = 'action_block' + actionBlockIdx;
 
         for (var actionLineIdx = 0; actionLineIdx < actionBlock.length; ++actionLineIdx)
         {
             var actionLine = actionBlock[actionLineIdx];
 
             var actionLineElement = document.createElement('div');
+            actionLineElement.style.height = buttonHeight;
+            actionLineElement.style.marginTop = '5px';
 
             for (var actionIdx = 0; actionIdx < actionLine.length; ++actionIdx)
             {
@@ -212,9 +219,7 @@ function showHackField(field)
                     actionButton.className = 'button';
                 }
                 actionButton.style.height = buttonHeight - 10 - 2 + 'px';
-                actionButton.style.padding = '5px';
-                actionButton.style.marginTop = '5px';
-                actionButton.style.marginRight = '5px';
+                actionButton.style.padding = '5px 0';
                 actionLineElement.appendChild(actionButton);
             }
 
@@ -336,6 +341,8 @@ function showHackField(field)
             }
             if (cellData.equipment !== undefined)
             {
+                var equipment = field.equipment[cellData.equipment];
+
                 var equipmentPosition = document.createElement('div');
                 if (cellData.equipment === 'c&c')
                 {
@@ -343,14 +350,27 @@ function showHackField(field)
                 }
                 else
                 {
-                    equipmentPosition.className = 'equipment' + getLevel(cellData.priority);
+                    var className = 'equipment' + getLevel(cellData.priority);
+                    if (equipment.status !== 'online')
+                    {
+                        className += '_offline';
+                    }
+
+                    equipmentPosition.className = className;
                 }
                 equipmentPosition.style.width = equipmentCellSize + 'px';
                 equipmentPosition.style.height = equipmentCellSize + 'px';
                 equipmentPosition.style.borderRadius = equipmentCellSize / 2 + 'px';
                 equipmentPosition.style.marginLeft = (cellSize - equipmentCellSize) / 2 + 'px';
                 equipmentPosition.style.marginTop = (cellSize - equipmentCellSize) / 2 + 'px';
-                equipmentPosition.title = field.equipment.find(function(equipment){ return equipment.id === cellData.equipment; }).name;
+
+                var name = equipment.name;
+                if (equipment.status === 'broken')
+                {
+                    name += ' (сломано)';
+                }
+
+                equipmentPosition.title = name;
 
                 cell.appendChild(equipmentPosition);
             }
@@ -441,7 +461,7 @@ function showHackerGreeting()
     hackButton.style.padding = '5px';
     hackButton.style.margin = '5px';
     hackButton.onclick = function() { startHackGame(); };
-    hackButton.innerText = 'Сломать!';
+    hackButton.innerText = 'Подключиться';
 
     actionField.appendChild(hackButton);
     actionZone.appendChild(actionField);

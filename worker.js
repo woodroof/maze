@@ -1,5 +1,8 @@
-var moveTime = 1000;
 var hackTime = 10 * 60 * 1000;
+
+var moveTime = 1000;
+var breakTime = 30 * 1000;
+
 var field;
 var equipment = [
     {
@@ -364,7 +367,7 @@ function addEquipment(field)
 
     setPercent(logInfo);
 
-    field.equipment = [];
+    field.equipment = {};
 
     for (var i = 0; i < equipment.length; ++i)
     {
@@ -381,7 +384,7 @@ function addEquipment(field)
         cell.equipment = equipment[i].id;
         cell.color = equipment[i].color;
 
-        field.equipment.push({'id': equipment[i].id, 'pos': pos, 'name': equipment[i].name});
+        field.equipment[equipment[i].id] = {'pos': pos, 'name': equipment[i].name, 'status': 'online'};
 
         if (equipment[i].id === 'c&c')
         {
@@ -489,10 +492,10 @@ function extendZones(field)
     var done = 0;
 
     var queue = [];
-    for (var i = 0; i < field.equipment.length; ++i)
+    for (var nextEquipment in field.equipment)
     {
         ++done;
-        pushColor(field.cells, field.equipment[i].pos, queue);
+        pushColor(field.cells, field.equipment[nextEquipment].pos, queue);
     }
 
     while (queue.length)
@@ -565,6 +568,14 @@ function setHackerPosition(field)
     var y = randomIdx(0, field.hSize - 1);
     field.playerPosition = {'x': x, 'y': y};
 }
+function addCutActions(field)
+{
+    var actionLines = [];
+
+    // TODO
+
+    field.actionBlocks.push(actionLines);
+}
 function addMoveActions(field)
 {
     var actionLines = [];
@@ -611,11 +622,33 @@ function addMoveActions(field)
 
     field.actionBlocks.push(actionLines);
 }
+function addBreakEquipmentAction(field)
+{
+    var breakEquipmentBlock = [];
+    breakEquipmentBlock.push([]);
+
+    var cellEquipment = field.cells[field.playerPosition.x][field.playerPosition.y].equipment;
+    if (
+        cellEquipment !== undefined &&
+        cellEquipment !== 'c&c' &&
+        field.equipment[cellEquipment].status === 'online')
+    {
+        breakEquipmentBlock[0].push({'name': 'Взломать', 'action': 'break', 'time': breakTime, 'description': 'Взламываем узел'});
+    }
+    else
+    {
+        breakEquipmentBlock[0].push({'name': 'Взломать'});
+    }
+
+    field.actionBlocks.push(breakEquipmentBlock);
+}
 function setHackActions(field)
 {
     field.actionBlocks = [];
 
+    addCutActions(field);
     addMoveActions(field);
+    addBreakEquipmentAction(field);
 }
 function setGameEndTime(field)
 {
@@ -641,20 +674,37 @@ function sleep(time)
 {
     var now = new Date().getTime();
     while(new Date().getTime() < now + time){}
+    return true;
 }
 function move(dx, dy)
 {
-    sleep(moveTime);
+    if (sleep(moveTime))
+    {
+        field.playerPosition.x += dx;
+        field.playerPosition.y += dy;
 
-    field.playerPosition.x += dx;
-    field.playerPosition.y += dy;
+        setHackActions(field);
 
-    setHackActions(field);
+        var message = {};
+        message.type = 'show_hack_field';
+        message.data = field;
+        postMessage(message);
+    }
+}
+function breakEquipment()
+{
+    if (sleep(breakTime))
+    {
+        var cell = field.cells[field.playerPosition.x][field.playerPosition.y];
+        field.equipment[cell.equipment].status = 'broken';
 
-    var message = {};
-    message.type = 'show_hack_field';
-    message.data = field;
-    postMessage(message);
+        setHackActions(field);
+
+        var message = {};
+        message.type = 'show_hack_field';
+        message.data = field;
+        postMessage(message);
+    }
 }
 
 onmessage =
@@ -677,6 +727,9 @@ onmessage =
             break;
         case 'move_down':
             move(1, 0);
+            break;
+        case 'break':
+            breakEquipment();
             break;
         }
     }
