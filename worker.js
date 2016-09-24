@@ -795,7 +795,11 @@ function updateEngineerFogOfWar(field)
     {
         for (var j = y - engineerVisibleArea; j <= y + engineerVisibleArea; ++j)
         {
-            if (i >= 0 && j >= 0)
+            if (
+                i >= 0 &&
+                i < field.vSize &&
+                j >= 0 &&
+                j < field.hSize)
             {
                 field.cells[i][j].visible = true;
             }
