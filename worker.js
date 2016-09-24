@@ -1,4 +1,4 @@
-var hackTime = 10 * 60 * 1000;
+var hackTime = 5 * 60 * 1000;
 var endHackTimeout;
 
 var moveTime = 1000;
