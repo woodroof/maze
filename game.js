@@ -1,9 +1,4 @@
 /* TODO:
- * - Зона неизвестного
- * - Зона устаревшего
- * - Зона видимого (до следующей развилки)
- * - Зона видимого у инженера
- * - Зона устаревшего у инженера
  * - Сохранение промежуточного состояния
  * - Реальное оборудование
  * - Заголовок страницы
@@ -11,6 +6,7 @@
  * - Удаление связей (переразметка расстояния, определение отключённых зон, сохранение оригинальных связей)
  * - Проверка связности, завершение по нахождению в отключенной подсети
  * - Зона отключённого
+ * - Зона устаревшего у инженера без учёта изменений хакера
  * - Восстановление связей
  * Опционально:
  * - Help
@@ -291,16 +287,86 @@ function showField(field)
             cell.className = 'field_cell';
             cell.style.width = cellSize + 'px';
             cell.style.height = cellSize + 'px';
-            cell.style.backgroundColor = getColor(cellData.color);
 
-            var title = document.createElement('div');
-            title.className = 'zone_title';
-            title.style.width = cellSize + 'px';
-            title.style.height = cellSize + 'px';
-            title.title = getTitle(cellData.color);
-            cell.appendChild(title);
+            if (!cellData.known)
+            {
+                var unknown = document.createElement('div');
+                unknown.className = 'unknown';
+                unknown.style.width = cellSize + 'px';
+                unknown.style.height = cellSize + 'px';
+                unknown.title = 'Сеть непознанная';
+                cell.appendChild(unknown);
+            }
+            else
+            {
+                cell.style.backgroundColor = getColor(cellData.color);
 
-            if (!cellData.right)
+                var title = document.createElement('div');
+                title.className = 'zone_title';
+                title.style.width = cellSize + 'px';
+                title.style.height = cellSize + 'px';
+                title.title = getTitle(cellData.color);
+                cell.appendChild(title);
+
+                if (!cellData.visible)
+                {
+                    var invisible = document.createElement('div');
+                    invisible.className = 'invisible';
+                    invisible.style.width = cellSize + 'px';
+                    invisible.style.height = cellSize + 'px';
+                    cell.appendChild(invisible);
+                }
+
+                if (cellData.equipment !== undefined)
+                {
+                    var equipment = field.equipment[cellData.equipment];
+
+                    var level = getLevel(cellData.priority);
+
+                    var equipmentPosition = document.createElement('div');
+                    if (cellData.equipment === 'c&c')
+                    {
+                        equipmentPosition.className = 'cc';
+                    }
+                    else
+                    {
+                        var className = 'equipment' + level;
+                        if (equipment.status !== 'online')
+                        {
+                            className += '_offline';
+                        }
+
+                        equipmentPosition.className = className;
+                    }
+                    var size = equipmentCellSize - 2 * level;
+
+                    equipmentPosition.style.width = size + 'px';
+                    equipmentPosition.style.height = size + 'px';
+                    equipmentPosition.style.borderRadius = size / 2 + 'px';
+                    equipmentPosition.style.marginLeft = (cellSize - size) / 2 + 'px';
+                    equipmentPosition.style.marginTop = (cellSize - size) / 2 + 'px';
+                    cell.appendChild(equipmentPosition);
+
+                    var equipmentTitle = document.createElement('div');
+                    equipmentTitle.className = 'equipment_title';
+                    equipmentTitle.style.width = size + 'px';
+                    equipmentTitle.style.height = size + 'px';
+                    equipmentTitle.style.borderRadius = size / 2 + 'px';
+                    equipmentTitle.style.marginLeft = (cellSize - size) / 2 + 'px';
+                    equipmentTitle.style.marginTop = (cellSize - size) / 2 + 'px';
+
+                    var name = equipment.name;
+                    if (equipment.status === 'broken')
+                    {
+                        name += ' (сломано)';
+                    }
+
+                    equipmentTitle.title = name;
+
+                    cell.appendChild(equipmentTitle);
+                }
+            }
+            if (!cellData.right && (cellData.known || field.cells[i][j + 1].known))
             {
                 var hPriority = cellData.priority;
                 if (j !== field.hSize - 1 && field.cells[i][j + 1].priority > hPriority)
@@ -320,7 +386,7 @@ function showField(field)
                 hConnection.style.marginTop = (cellSize - height) / 2 | 0 + 'px';
                 cell.appendChild(hConnection);
             }
-            if (!cellData.bottom)
+            if (!cellData.bottom && (cellData.known || field.cells[i + 1][j].known))
             {
                 var vPriority = cellData.priority;
                 if (i !== field.vSize - 1 && field.cells[i + 1][j].priority > vPriority)
@@ -339,45 +405,6 @@ function showField(field)
                 vConnection.style.height = cellSize + 1 + 'px';
                 vConnection.style.marginTop = cellSize / 2 | 0 + 'px';
                 cell.appendChild(vConnection);
-            }
-            if (cellData.equipment !== undefined)
-            {
-                var equipment = field.equipment[cellData.equipment];
-
-                var level = getLevel(cellData.priority);
-
-                var equipmentPosition = document.createElement('div');
-                if (cellData.equipment === 'c&c')
-                {
-                    equipmentPosition.className = 'cc';
-                }
-                else
-                {
-                    var className = 'equipment' + level;
-                    if (equipment.status !== 'online')
-                    {
-                        className += '_offline';
-                    }
-
-                    equipmentPosition.className = className;
-                }
-                var size = equipmentCellSize - 2 * level;
-
-                equipmentPosition.style.width = size + 'px';
-                equipmentPosition.style.height = size + 'px';
-                equipmentPosition.style.borderRadius = size / 2 + 'px';
-                equipmentPosition.style.marginLeft = (cellSize - size) / 2 + 'px';
-                equipmentPosition.style.marginTop = (cellSize - size) / 2 + 'px';
-
-                var name = equipment.name;
-                if (equipment.status === 'broken')
-                {
-                    name += ' (сломано)';
-                }
-
-                equipmentPosition.title = name;
-
-                cell.appendChild(equipmentPosition);
             }
             if (
                 field.playerPosition.x === i &&
