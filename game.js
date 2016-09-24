@@ -192,7 +192,10 @@ function showField(field)
 
     var actions = document.getElementById('actions');
     actions.innerHTML = '';
-    for (var actionBlockIdx = 0; actionBlockIdx < field.actionBlocks.length; ++actionBlockIdx)
+    var center = document.createElement('div');
+    center.className = 'action_center';
+    actions.appendChild(center);
+    for (var actionBlockIdx = 1; actionBlockIdx < field.actionBlocks.length; ++actionBlockIdx)
     {
         var actionBlock = field.actionBlocks[actionBlockIdx];
 
@@ -230,7 +233,7 @@ function showField(field)
             actionBlockElement.appendChild(actionLineElement);
         }
 
-        actions.appendChild(actionBlockElement);
+        center.appendChild(actionBlockElement);
     }
 
     var fieldImage = document.getElementById('field');
