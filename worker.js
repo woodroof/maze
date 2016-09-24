@@ -924,6 +924,7 @@ function sleep(time)
         desiredTime > field.gameEndTime)
     {
         desiredTime = field.gameEndTime;
+        result = false;
     }
 
     while(new Date().getTime() < desiredTime){}
