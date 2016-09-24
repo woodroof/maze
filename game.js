@@ -194,7 +194,7 @@ function showField(field)
     actions.innerHTML = '';
     var center = document.createElement('div');
     center.className = 'action_center';
-    actions.appendElement(center);
+    actions.appendChild(center);
     for (var actionBlockIdx = 1; actionBlockIdx < field.actionBlocks.length; ++actionBlockIdx)
     {
         var actionBlock = field.actionBlocks[actionBlockIdx];
