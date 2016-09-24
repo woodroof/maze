@@ -192,7 +192,7 @@ function showField(field)
 
     var actions = document.getElementById('actions');
     actions.innerHTML = '';
-    for (var actionBlockIdx = 0; actionBlockIdx < field.actionBlocks.length; ++actionBlockIdx)
+    for (var actionBlockIdx = 1; actionBlockIdx < field.actionBlocks.length; ++actionBlockIdx)
     {
         var actionBlock = field.actionBlocks[actionBlockIdx];
 
