@@ -35,6 +35,8 @@ var timerWidth = 100;
 var timerHeight = 35;
 var logWidth = 500;
 
+var criticalTime = 30 * 1000;
+
 var singleLevelConnectionCount = 20;
 var levelCount = 3;
 
@@ -158,7 +160,12 @@ function formatMins(msecs)
 }
 function updateGameTimerText(timer)
 {
-    timer.innerText = formatMins(timer.endTime - new Date().getTime());
+    var msecs = timer.endTime - new Date().getTime();
+    timer.innerText = formatMins(msecs);
+    if (msecs < criticalTime)
+    {
+        timer.style.color = 'red';
+    }
 }
 function updateGameTimer()
 {
