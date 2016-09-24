@@ -28,7 +28,7 @@ var actionTimerTimeout;
 var hSize = 30;
 var vSize = 30;
 var cellSize = 15;
-var equipmentCellSize = 11;
+var equipmentCellSize = 13;
 var playerPositionSize = 7;
 var buttonHeight = 30;
 var fieldZoneVSize = vSize * cellSize + 2;
@@ -343,6 +343,8 @@ function showHackField(field)
             {
                 var equipment = field.equipment[cellData.equipment];
 
+                var level = getLevel(cellData.priority);
+
                 var equipmentPosition = document.createElement('div');
                 if (cellData.equipment === 'c&c')
                 {
@@ -350,7 +352,7 @@ function showHackField(field)
                 }
                 else
                 {
-                    var className = 'equipment' + getLevel(cellData.priority);
+                    var className = 'equipment' + level;
                     if (equipment.status !== 'online')
                     {
                         className += '_offline';
@@ -358,11 +360,13 @@ function showHackField(field)
 
                     equipmentPosition.className = className;
                 }
-                equipmentPosition.style.width = equipmentCellSize + 'px';
-                equipmentPosition.style.height = equipmentCellSize + 'px';
-                equipmentPosition.style.borderRadius = equipmentCellSize / 2 + 'px';
-                equipmentPosition.style.marginLeft = (cellSize - equipmentCellSize) / 2 + 'px';
-                equipmentPosition.style.marginTop = (cellSize - equipmentCellSize) / 2 + 'px';
+                var size = equipmentCellSize - 2 * level;
+
+                equipmentPosition.style.width = size + 'px';
+                equipmentPosition.style.height = size + 'px';
+                equipmentPosition.style.borderRadius = size / 2 + 'px';
+                equipmentPosition.style.marginLeft = (cellSize - size) / 2 + 'px';
+                equipmentPosition.style.marginTop = (cellSize - size) / 2 + 'px';
 
                 var name = equipment.name;
                 if (equipment.status === 'broken')
