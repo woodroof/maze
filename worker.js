@@ -4,6 +4,7 @@ var endHackTimeout;
 var moveTime = 1000;
 var breakTime = 30 * 1000;
 var repairTime = 2 * breakTime;
+var engineerVisibleArea = 2;
 
 var field;
 var equipment = [
@@ -767,6 +768,123 @@ function disconnect()
     message.data = field;
     postMessage(message);
 }
+function setHackerFogOfWar(field)
+{
+    for (var i = 0; i < field.vSize; ++i)
+    {
+        for (var j = 0; j < field.hSize; ++j)
+        {
+            field.cells[i][j].known = false;
+        }
+    }
+}
+function updateEngineerFogOfWar(field)
+{
+    for (var i = 0; i < field.vSize; ++i)
+    {
+        for (var j = 0; j < field.hSize; ++j)
+        {
+            field.cells[i][j].visible = false;
+        }
+    }
+
+    var x = field.playerPosition.x;
+    var y = field.playerPosition.y;
+
+    for (var i = x - engineerVisibleArea; i <= x + engineerVisibleArea; ++i)
+    {
+        for (var j = y - engineerVisibleArea; j <= y + engineerVisibleArea; ++j)
+        {
+            if (i >= 0 && j >= 0)
+            {
+                field.cells[i][j].visible = true;
+            }
+        }
+    }
+}
+function updateHackerFogOfWar(field)
+{
+    for (var i = 0; i < field.vSize; ++i)
+    {
+        for (var j = 0; j < field.hSize; ++j)
+        {
+            field.cells[i][j].visible = false;
+        }
+    }
+
+    var x = field.playerPosition.x;
+    var y = field.playerPosition.y;
+    field.cells[x][y].known = true;
+    field.cells[x][y].visible = true;
+
+    var i = x;
+    while (
+        i &&
+        !field.cells[i - 1][y].bottom)
+    {
+        field.cells[i - 1][y].known = true;
+        field.cells[i - 1][y].visible = true;
+        if (
+            field.cells[i - 1][y].equipment !== undefined ||
+            !field.cells[i - 1][y].right ||
+            (y && !field.cells[i - 1][y - 1].right))
+        {
+            break;
+        }
+        --i;
+    }
+
+    i = x;
+    while (
+        i !== field.vSize - 1 &&
+        !field.cells[i][y].bottom)
+    {
+        field.cells[i + 1][y].known = true;
+        field.cells[i + 1][y].visible = true;
+        if (
+            field.cells[i + 1][y].equipment !== undefined ||
+            !field.cells[i + 1][y].right ||
+            (y && !field.cells[i + 1][y - 1].right))
+        {
+            break;
+        }
+        ++i;
+    }
+
+    i = y;
+    while (
+        i &&
+        !field.cells[x][i - 1].right)
+    {
+        field.cells[x][i - 1].known = true;
+        field.cells[x][i - 1].visible = true;
+        if (
+            field.cells[x][i - 1].equipment !== undefined ||
+            !field.cells[x][i - 1].bottom ||
+            (x && !field.cells[x - 1][i - 1].bottom))
+        {
+            break;
+        }
+        --i;
+    }
+
+    i = y;
+    while (
+        i !== field.hSize - 1 &&
+        !field.cells[x][i].right)
+    {
+        field.cells[x][i + 1].known = true;
+        field.cells[x][i + 1].visible = true;
+        if (
+            field.cells[x][i + 1].equipment !== undefined ||
+            !field.cells[x][i + 1].bottom ||
+            (x && !field.cells[x - 1][i + 1].bottom))
+        {
+            break;
+        }
+        ++i;
+    }
+}
 function setGameEndTime(field)
 {
     field.gameEndTime = new Date().getTime() + hackTime;
@@ -786,7 +904,9 @@ function connectHacker(params)
     removeBorders(field, 0.1);
     extendZones(field);
     determineNodePriorities(field);
+    setHackerFogOfWar(field);
     setHackerPosition(field);
+    updateHackerFogOfWar(field);
     setHackerActions(field);
     setGameEndTime(field);
 
@@ -823,6 +943,7 @@ function moveHacker(dx, dy)
         field.playerPosition.y += dy;
 
         setHackerActions(field);
+        updateHackerFogOfWar(field);
 
         showField();
     }
@@ -835,6 +956,7 @@ function moveEngineer(dx, dy)
         field.playerPosition.y += dy;
 
         setEngineerActions(field);
+        updateEngineerFogOfWar(field);
 
         showField();
     }
@@ -865,6 +987,15 @@ function repairEquipment()
 }
 function connectEngineer()
 {
+    for (var i = 0; i < field.vSize; ++i)
+    {
+        for (var j = 0; j < field.hSize; ++j)
+        {
+            field.cells[i][j].known = true;
+            field.cells[i][j].visible = false;
+        }
+    }
+
     logInfo = { 'message': 'Повышаем привилегии' };
     setPercent(logInfo, 1, 1);
 
@@ -873,6 +1004,7 @@ function connectEngineer()
 
     field.playerPosition = {'x': field.commandPosition.x, 'y': field.commandPosition.y};
 
+    updateEngineerFogOfWar(field);
     setEngineerActions(field);
 
     showField();
