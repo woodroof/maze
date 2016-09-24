@@ -1,17 +1,17 @@
 /* TODO:
- * - Удаление связей (переразметка расстояния, определение отключённых зон, сохранение оригинальных связей)
- * - Проверка связности, завершение по нахождению в отключенной подсети
- * - Завершение взлома по истечении времени (в том числе проверка при начале другого действия)
  * - Зона неизвестного
  * - Зона устаревшего
  * - Зона видимого (до следующей развилки)
- * - Зона отключённого
- * - Игра инженера (своя зона видимого и устаревшего, восстановление связей)
- * - Рестарт игры
+ * - Зона видимого у инженера
+ * - Зона устаревшего у инженера
  * - Сохранение промежуточного состояния
  * - Реальное оборудование
  * - Заголовок страницы
  * - Связь с БД
+ * - Удаление связей (переразметка расстояния, определение отключённых зон, сохранение оригинальных связей)
+ * - Проверка связности, завершение по нахождению в отключенной подсети
+ * - Зона отключённого
+ * - Восстановление связей
  * Опционально:
  * - Help
  * - Сообщения о переходе в другой сектор
@@ -19,6 +19,7 @@
  * - Миниигры на удаление/восстановление связей
  * - Миниигры на взлом/починку
  * - "Бонусы" (положительные и отрицательные)
+ * - Разный внешний вид для хакера и инженера
  */
 
 var worker;
@@ -182,9 +183,9 @@ function getLevel(priority)
     }
     return level;
 }
-function showHackField(field)
+function showField(field)
 {
-    window.clearTimeout(actionTimerTimeout);
+    clearTimeout(actionTimerTimeout);
 
     var actions = document.getElementById('actions');
     actions.innerHTML = '';
@@ -251,7 +252,7 @@ function showHackField(field)
     {
         updateGameTimerText(timer);
     }
-    else
+    else if (field.gameEndTime !== undefined)
     {
         var timer_zone = document.createElement('div');
         timer_zone.className = 'game_timer_zone';
@@ -403,14 +404,23 @@ function startHackGame()
     document.getElementById('actions').innerHTML = '';
 
     var message = {};
-    message.type = 'generate_hack_field';
+    message.type = 'connect_hacker';
     message.params = {};
     message.params.hSize = hSize;
     message.params.vSize = vSize;
 
     worker.postMessage(message);
 }
-function showHackerGreeting()
+function startEngineerGame()
+{
+    document.getElementById('actions').innerHTML = '';
+
+    var message = {};
+    message.type = 'connect_engineer';
+
+    worker.postMessage(message);
+}
+function showGreeting(statusMessage, statusColor, action)
 {
     document.body.innerHTML = '';
     document.body.style.minWidth = logWidth + fieldZoneVSize + 2 * (timerWidth + 4);
@@ -441,7 +451,8 @@ function showHackerGreeting()
 
     var status = document.createElement('div');
     status.className = 'status';
-    status.innerText = 'All systems online';
+    status.innerText = statusMessage;
+    status.style.color = statusColor;
     status.style.marginRight = logWidth + 'px';
     fieldZone.appendChild(status);
 
@@ -459,24 +470,28 @@ function showHackerGreeting()
     actionField.style.borderWidth = '2px';
     actionField.style.height = actionZoneHeight - 8 + 'px';
 
-    var hackButton = document.createElement('div');
-    hackButton.className = 'button';
-    hackButton.style.height = buttonHeight - 10 - 2 + 'px';
-    hackButton.style.padding = '5px';
-    hackButton.style.margin = '5px';
-    hackButton.onclick = function() { startHackGame(); };
-    hackButton.innerText = 'Подключиться';
+    var actionButton = document.createElement('div');
+    actionButton.className = 'button';
+    actionButton.style.height = buttonHeight - 10 - 2 + 'px';
+    actionButton.style.padding = '5px';
+    actionButton.style.margin = '5px';
+    actionButton.onclick = action;
+    actionButton.innerText = 'Подключиться';
 
-    actionField.appendChild(hackButton);
+    actionField.appendChild(actionButton);
     actionZone.appendChild(actionField);
 
     zone.appendChild(actionZone);
 
     document.body.appendChild(zone);
 }
-function showEngeenerGreeting()
+function showHackerGreeting()
 {
-    document.body.innerHTML = '';
+    showGreeting('All systems online', 'green', function() { startHackGame(); });
+}
+function showEngineerGreeting()
+{
+    showGreeting('Some systems are offline', 'red', function() { startEngineerGame(); });
 }
 
 worker = new Worker("worker.js");
@@ -492,8 +507,14 @@ worker.onmessage =
         case 'log_replace':
             logReplace(message.data);
             break;
-        case 'show_hack_field':
-            showHackField(message.data);
+        case 'show_field':
+            showField(message.data);
+            break;
+        case 'show_hacker_greeting':
+            showHackerGreeting();
+            break;
+        case 'show_engineer_greeting':
+            showEngineerGreeting();
             break;
         }
     };

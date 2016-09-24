@@ -1,7 +1,9 @@
 var hackTime = 10 * 60 * 1000;
+var endHackTimeout;
 
 var moveTime = 1000;
 var breakTime = 30 * 1000;
+var repairTime = 2 * breakTime;
 
 var field;
 var equipment = [
@@ -403,7 +405,7 @@ function addEquipment(field)
 }
 function removeBorders(field, ratio)
 {
-    var logInfo = { 'message': 'Ищем вспомогательные подключения' };
+    var logInfo = { 'message': 'Исследуем вспомогательные подключения' };
 
     setPercent(logInfo);
 
@@ -527,7 +529,7 @@ function pushPriority(cells, pos, queue, priority)
 }
 function determineNodePriorities(field)
 {
-    var logInfo = { 'message': 'Определяем пропускную способность подключений' };
+    var logInfo = { 'message': 'Подсчитываем пропускную способность подключений' };
 
     setPercent(logInfo);
 
@@ -576,13 +578,21 @@ function addCutActions(field)
 
     field.actionBlocks.push(actionLines);
 }
-function addMoveActions(field)
+function addConnectActions(field)
+{
+    var actionLines = [];
+
+    // TODO
+
+    field.actionBlocks.push(actionLines);
+}
+function addMoveHackerActions(field)
 {
     var actionLines = [];
     var actionLine = [];
     if (field.playerPosition.x && !field.cells[field.playerPosition.x - 1][field.playerPosition.y].bottom)
     {
-        actionLine.push({'name': 'Вверх', 'action': 'move_up', 'time': moveTime, 'description': 'Перемещаемся вверх'});
+        actionLine.push({'name': 'Вверх', 'action': 'move_hacker_up', 'time': moveTime, 'description': 'Перемещаемся вверх'});
     }
     else
     {
@@ -593,7 +603,7 @@ function addMoveActions(field)
     actionLine = [];
     if (field.playerPosition.y && !field.cells[field.playerPosition.x][field.playerPosition.y - 1].right)
     {
-        actionLine.push({'name': 'Влево', 'action': 'move_left', 'time': moveTime, 'description': 'Перемещаемся влево'});
+        actionLine.push({'name': 'Влево', 'action': 'move_hacker_left', 'time': moveTime, 'description': 'Перемещаемся влево'});
     }
     else
     {
@@ -601,7 +611,7 @@ function addMoveActions(field)
     }
     if (!field.cells[field.playerPosition.x][field.playerPosition.y].right)
     {
-        actionLine.push({'name': 'Вправо', 'action': 'move_right', 'time': moveTime, 'description': 'Перемещаемся вправо'});
+        actionLine.push({'name': 'Вправо', 'action': 'move_hacker_right', 'time': moveTime, 'description': 'Перемещаемся вправо'});
     }
     else
     {
@@ -612,7 +622,7 @@ function addMoveActions(field)
     actionLine = [];
     if (!field.cells[field.playerPosition.x][field.playerPosition.y].bottom)
     {
-        actionLine.push({'name': 'Вниз', 'action': 'move_down', 'time': moveTime, 'description': 'Перемещаемся вниз'});
+        actionLine.push({'name': 'Вниз', 'action': 'move_hacker_down', 'time': moveTime, 'description': 'Перемещаемся вниз'});
     }
     else
     {
@@ -622,10 +632,56 @@ function addMoveActions(field)
 
     field.actionBlocks.push(actionLines);
 }
-function addBreakEquipmentAction(field)
+function addMoveEngineerActions(field)
 {
-    var breakEquipmentBlock = [];
-    breakEquipmentBlock.push([]);
+    var actionLines = [];
+    var actionLine = [];
+    if (field.playerPosition.x)
+    {
+        actionLine.push({'name': 'Вверх', 'action': 'move_engineer_up', 'time': moveTime, 'description': 'Перемещаемся вверх'});
+    }
+    else
+    {
+        actionLine.push({'name': 'Вверх'});
+    }
+    actionLines.push(actionLine);
+
+    actionLine = [];
+    if (field.playerPosition.y)
+    {
+        actionLine.push({'name': 'Влево', 'action': 'move_engineer_left', 'time': moveTime, 'description': 'Перемещаемся влево'});
+    }
+    else
+    {
+        actionLine.push({'name': 'Влево'});
+    }
+    if (field.playerPosition.y !== field.hSize - 1)
+    {
+        actionLine.push({'name': 'Вправо', 'action': 'move_engineer_right', 'time': moveTime, 'description': 'Перемещаемся вправо'});
+    }
+    else
+    {
+        actionLine.push({'name': 'Вправо'});
+    }
+    actionLines.push(actionLine);
+
+    actionLine = [];
+    if (field.playerPosition.x !== field.vSize - 1)
+    {
+        actionLine.push({'name': 'Вниз', 'action': 'move_engineer_down', 'time': moveTime, 'description': 'Перемещаемся вниз'});
+    }
+    else
+    {
+        actionLine.push({'name': 'Вниз'});
+    }
+    actionLines.push(actionLine);
+
+    field.actionBlocks.push(actionLines);
+}
+function addHackerSingleActions(field)
+{
+    var singleActionsBlock = [];
+    singleActionsBlock.push([]);
 
     var cellEquipment = field.cells[field.playerPosition.x][field.playerPosition.y].equipment;
     if (
@@ -633,28 +689,97 @@ function addBreakEquipmentAction(field)
         cellEquipment !== 'c&c' &&
         field.equipment[cellEquipment].status === 'online')
     {
-        breakEquipmentBlock[0].push({'name': 'Взломать', 'action': 'break', 'time': breakTime, 'description': 'Взламываем узел'});
+        singleActionsBlock[0].push({'name': 'Взломать', 'action': 'break', 'time': breakTime, 'description': 'Взламываем узел'});
     }
     else
     {
-        breakEquipmentBlock[0].push({'name': 'Взломать'});
+        singleActionsBlock[0].push({'name': 'Взломать'});
     }
 
-    field.actionBlocks.push(breakEquipmentBlock);
+    singleActionsBlock.push([]);
+    singleActionsBlock[1].push({'name': 'Отключиться', 'action': 'disconnect', 'description': 'Отключаемся'})
+
+    field.actionBlocks.push(singleActionsBlock);
 }
-function setHackActions(field)
+function addEngineerSingleActions(field)
+{
+    var singleActionsBlock = [];
+    singleActionsBlock.push([]);
+
+    var cellEquipment = field.cells[field.playerPosition.x][field.playerPosition.y].equipment;
+    if (
+        cellEquipment !== undefined &&
+        field.equipment[cellEquipment].status === 'broken')
+    {
+        singleActionsBlock[0].push({'name': 'Починить', 'action': 'repair', 'time': repairTime, 'description': 'Восстанавливаем узел'});
+    }
+    else
+    {
+        singleActionsBlock[0].push({'name': 'Починить'});
+    }
+
+    singleActionsBlock.push([]);
+    singleActionsBlock[1].push({'name': 'Отключиться', 'action': 'disconnect', 'description': 'Отключаемся'})
+
+    field.actionBlocks.push(singleActionsBlock);
+}
+function setHackerActions(field)
 {
     field.actionBlocks = [];
 
     addCutActions(field);
-    addMoveActions(field);
-    addBreakEquipmentAction(field);
+    addMoveHackerActions(field);
+    addHackerSingleActions(field);
+}
+function setEngineerActions(field)
+{
+    field.actionBlocks = [];
+
+    addConnectActions(field);
+    addMoveEngineerActions(field);
+    addEngineerSingleActions(field);
+}
+function disconnect()
+{
+    clearTimeout(endHackTimeout);
+    field.gameEndTime = undefined;
+
+    var message = {};
+
+    var broken = false;
+    for (var currentEquipment in field.equipment)
+    {
+        if (field.equipment[currentEquipment].status !== 'online')
+        {
+            broken = true;
+            break;
+        }
+    }
+    if (broken)
+    {
+        message.type = 'show_engineer_greeting';
+    }
+    else
+    {
+        message.type = 'show_hacker_greeting';
+    }
+
+    message.data = field;
+    postMessage(message);
 }
 function setGameEndTime(field)
 {
     field.gameEndTime = new Date().getTime() + hackTime;
+    endHackTimeout = setTimeout(disconnect, hackTime);
 }
-function generateHackField(params)
+function showField()
+{
+    var message = {};
+    message.type = 'show_field';
+    message.data = field;
+    postMessage(message);
+}
+function connectHacker(params)
 {
     field = generateMazeWithoutLoops(params.hSize, params.vSize);
     addEquipment(field);
@@ -662,33 +787,56 @@ function generateHackField(params)
     extendZones(field);
     determineNodePriorities(field);
     setHackerPosition(field);
-    setHackActions(field);
+    setHackerActions(field);
     setGameEndTime(field);
 
-    var message = {};
-    message.type = 'show_hack_field';
-    message.data = field;
-    postMessage(message);
+    showField();
 }
 function sleep(time)
 {
     var now = new Date().getTime();
-    while(new Date().getTime() < now + time){}
-    return true;
+    var desiredTime = now + time;
+
+    var result = true;
+
+    if (
+        field.gameEndTime !== undefined &&
+        desiredTime > field.gameEndTime)
+    {
+        desiredTime = field.gameEndTime;
+    }
+
+    while(new Date().getTime() < desiredTime){}
+
+    if (!result)
+    {
+        disconnect();
+    }
+
+    return result;
 }
-function move(dx, dy)
+function moveHacker(dx, dy)
 {
     if (sleep(moveTime))
     {
         field.playerPosition.x += dx;
         field.playerPosition.y += dy;
 
-        setHackActions(field);
+        setHackerActions(field);
 
-        var message = {};
-        message.type = 'show_hack_field';
-        message.data = field;
-        postMessage(message);
+        showField();
+    }
+}
+function moveEngineer(dx, dy)
+{
+    if (sleep(moveTime))
+    {
+        field.playerPosition.x += dx;
+        field.playerPosition.y += dy;
+
+        setEngineerActions(field);
+
+        showField();
     }
 }
 function breakEquipment()
@@ -698,13 +846,36 @@ function breakEquipment()
         var cell = field.cells[field.playerPosition.x][field.playerPosition.y];
         field.equipment[cell.equipment].status = 'broken';
 
-        setHackActions(field);
+        setHackerActions(field);
 
-        var message = {};
-        message.type = 'show_hack_field';
-        message.data = field;
-        postMessage(message);
+        showField();
     }
+}
+function repairEquipment()
+{
+    if (sleep(repairTime))
+    {
+        var cell = field.cells[field.playerPosition.x][field.playerPosition.y];
+        field.equipment[cell.equipment].status = 'online';
+
+        setEngineerActions(field);
+
+        showField();
+    }
+}
+function connectEngineer()
+{
+    logInfo = { 'message': 'Повышаем привилегии' };
+    setPercent(logInfo, 1, 1);
+
+    var logInfo = { 'message': 'Подключаемся к системе' };
+    setPercent(logInfo, 1, 1);
+
+    field.playerPosition = {'x': field.commandPosition.x, 'y': field.commandPosition.y};
+
+    setEngineerActions(field);
+
+    showField();
 }
 
 onmessage =
@@ -713,23 +884,44 @@ onmessage =
         var msg = messageEvent.data;
         switch (msg.type)
         {
-        case 'generate_hack_field':
-            generateHackField(msg.params);
+        case 'connect_hacker':
+            connectHacker(msg.params);
             break;
-        case 'move_left':
-            move(0, -1);
+        case 'connect_engineer':
+            connectEngineer();
             break;
-        case 'move_right':
-            move(0, 1);
+        case 'move_hacker_left':
+            moveHacker(0, -1);
             break;
-        case 'move_up':
-            move(-1, 0);
+        case 'move_hacker_right':
+            moveHacker(0, 1);
             break;
-        case 'move_down':
-            move(1, 0);
+        case 'move_hacker_up':
+            moveHacker(-1, 0);
+            break;
+        case 'move_hacker_down':
+            moveHacker(1, 0);
+            break;
+        case 'move_engineer_left':
+            moveEngineer(0, -1);
+            break;
+        case 'move_engineer_right':
+            moveEngineer(0, 1);
+            break;
+        case 'move_engineer_up':
+            moveEngineer(-1, 0);
+            break;
+        case 'move_engineer_down':
+            moveEngineer(1, 0);
             break;
         case 'break':
             breakEquipment();
+            break;
+        case 'repair':
+            repairEquipment();
+            break;
+        case 'disconnect':
+            disconnect();
             break;
         }
     }
