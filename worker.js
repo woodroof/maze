@@ -190,10 +190,6 @@ var equipment = [
     }
 ];
 
-function idToServerId(id)
-{
-    return equipment.find(function(elem){ return elem.id === id; }).serverId;
-}
 function serverIdToId(serverId)
 {
     return equipment.find(function(elem){ return elem.serverId === serverId; }).id;
@@ -1119,9 +1115,26 @@ function repairEquipment()
 
         updateData();
 
-        setEngineerActions(field);
+        var broken = false;
+        for (var elem in field.equipment)
+        {
+            if (field.equipment[elem].status !== 'online')
+            {
+                broken = true;
+                break;
+            }
+        }
 
-        showField();
+        if (broken)
+        {
+            setEngineerActions(field);
+
+            showField();
+        }
+        else
+        {
+            disconnect();
+        }
     }
 }
 function connectEngineer()
