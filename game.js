@@ -1,21 +1,20 @@
 /* TODO:
- * - Сохранение промежуточного состояния
- * - Реальное оборудование
  * - Заголовок страницы
- * - Связь с БД
+ * Опционально:
+ * - Help
+ * - Сообщения о переходе в другой сектор
+ * - Сообщения о нахождении оборудования
+ * - Миниигра для починки
+ * - Разный внешний вид для хакера и инженера
+ * Скорее, нет:
+ * - Миниигра для взлома
  * - Удаление связей (переразметка расстояния, определение отключённых зон, сохранение оригинальных связей)
  * - Проверка связности, завершение по нахождению в отключенной подсети
  * - Зона отключённого
  * - Зона устаревшего у инженера без учёта изменений хакера
  * - Восстановление связей
- * Опционально:
- * - Help
- * - Сообщения о переходе в другой сектор
- * - Сообщения о нахождении оборудования
  * - Миниигры на удаление/восстановление связей
- * - Миниигры на взлом/починку
  * - "Бонусы" (положительные и отрицательные)
- * - Разный внешний вид для хакера и инженера
  */
 
 var worker;
@@ -454,7 +453,7 @@ function startEngineerGame()
 
     worker.postMessage(message);
 }
-function showGreeting(statusMessage, statusColor, action)
+function prepare()
 {
     document.body.innerHTML = '';
     document.body.style.minWidth = logWidth + fieldZoneVSize + 2 * (timerWidth + 4);
@@ -483,13 +482,6 @@ function showGreeting(statusMessage, statusColor, action)
     fieldZone.id = 'field_zone';
     fieldZone.style.height = fieldZoneHSize + 'px';
 
-    var status = document.createElement('div');
-    status.className = 'status';
-    status.innerText = statusMessage;
-    status.style.color = statusColor;
-    status.style.marginRight = logWidth + 'px';
-    fieldZone.appendChild(status);
-
     zone.appendChild(fieldZone);
 
     var actionZone = document.createElement('div');
@@ -504,6 +496,26 @@ function showGreeting(statusMessage, statusColor, action)
     actionField.style.borderWidth = '2px';
     actionField.style.height = actionZoneHeight - 8 + 'px';
 
+    actionZone.appendChild(actionField);
+
+    zone.appendChild(actionZone);
+
+    document.body.appendChild(zone);
+}
+function showGreeting(statusMessage, statusColor, action)
+{
+    var fieldZone = document.getElementById('field_zone');
+
+    var status = document.createElement('div');
+    status.className = 'status';
+    status.innerText = statusMessage;
+    status.style.color = statusColor;
+    status.style.marginRight = logWidth + 'px';
+
+    fieldZone.appendChild(status);
+
+    var actionField = document.getElementById('actions');
+
     var actionButton = document.createElement('div');
     actionButton.className = 'button';
     actionButton.style.height = buttonHeight - 10 - 2 + 'px';
@@ -513,19 +525,28 @@ function showGreeting(statusMessage, statusColor, action)
     actionButton.innerText = 'Подключиться';
 
     actionField.appendChild(actionButton);
-    actionZone.appendChild(actionField);
-
-    zone.appendChild(actionZone);
-
-    document.body.appendChild(zone);
 }
 function showHackerGreeting()
 {
+    prepare();
     showGreeting('All systems online', 'green', function() { startHackGame(); });
 }
 function showEngineerGreeting()
 {
+    prepare();
     showGreeting('Some systems are offline', 'red', function() { startEngineerGame(); });
+}
+function startGame()
+{
+    prepare();
+
+    var message = {};
+    message.type = 'start';
+    message.params = {};
+    message.params.hSize = hSize;
+    message.params.vSize = vSize;
+
+    worker.postMessage(message);
 }
 
 worker = new Worker("worker.js");

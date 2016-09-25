@@ -5,6 +5,9 @@ var moveTime = 1000;
 var breakTime = 30 * 1000;
 var repairTime = 2 * breakTime;
 var engineerVisibleArea = 2;
+var bordersRatio = 0.1;
+
+var dbUrl = 'http://sk.b5.langed.org/api/nosql';
 
 var field;
 var equipment = [
@@ -15,121 +18,157 @@ var equipment = [
     },
     {
         'id': 'reactor1',
+        'serverId': 1,
         'name': 'Реактор 1',
         'color': 'yellow'
     },
     {
         'id': 'reactor2',
+        'serverId': 2,
         'name': 'Реактор 2',
         'color': 'yellow'
     },
     {
         'id': 'spaceport',
+        'serverId': 20,
         'name': 'Космопорт',
         'color': 'blue'
     },
     {
         'id': 'squadron1',
+        'serverId': 21,
         'name': 'Эскадрилья 1',
         'color': 'blue'
     },
     {
         'id': 'squadron2',
+        'serverId': 22,
         'name': 'Эскадрилья 2',
         'color': 'blue'
     },
     {
         'id': 'squadron3',
+        'serverId': 23,
         'name': 'Эскадрилья 3',
         'color': 'blue'
     },
     {
         'id': 'squadron4',
+        'serverId': 24,
         'name': 'Эскадрилья 4',
         'color': 'blue'
     },
     {
         'id': 'weapon1',
+        'serverId': 6,
         'name': 'Орудие 1',
         'color': 'blue'
     },
     {
         'id': 'weapon2',
+        'serverId': 7,
         'name': 'Орудие 2',
         'color': 'blue'
     },
     {
         'id': 'weapon3',
+        'serverId': 8,
         'name': 'Орудие 3',
         'color': 'blue'
     },
     {
         'id': 'weapon4',
+        'serverId': 9,
         'name': 'Орудие 4',
         'color': 'blue'
     },
     {
         'id': 'radar',
+        'serverId': 18,
         'name': 'Радар',
         'color': 'blue'
     },
     {
         'id': 'observatory',
+        'serverId': 19,
         'name': 'Система наблюдения',
         'color': 'blue'
     },
     {
         'id': 'transmitter1',
+        'serverId': 3,
         'name': 'Тахионный передатчик 1',
         'color': 'blue'
     },
     {
         'id': 'transmitter2',
+        'serverId': 4,
         'name': 'Тахионный передатчик 2',
         'color': 'blue'
     },
     {
         'id': 'shield1',
+        'serverId': 15,
         'name': 'Генератор щита 1',
         'color': 'blue'
     },
     {
         'id': 'shield2',
+        'serverId': 16,
         'name': 'Генератор щита 2',
         'color': 'blue'
     },
     {
         'id': 'beacon',
+        'serverId': 5,
         'name': 'Гипермаяк',
         'color': 'blue'
     },
     {
         'id': 'close_range_weapon',
+        'serverId': 10,
         'name': 'Орудия ближнего боя',
         'color': 'blue'
     },
     {
+        'id': 'medlab',
+        'serverId': 25,
+        'name': 'Медицинский отсек',
+        'color': 'blue'
+    },
+    {
+        'id': 'lab',
+        'serverId': 26,
+        'name': 'Лаборатория',
+        'color': 'blue'
+    },
+    {
         'id': 'life_support',
+        'serverId': 17,
         'name': 'Система жизнеобеспечения',
         'color': 'grey'
     },
     {
         'id': 'hyperdrive',
+        'serverId': 11,
         'name': 'Гипердвигатель',
         'color': 'grey'
     },
     {
         'id': 'maneuvering_thrusters',
+        'serverId': 14,
         'name': 'Маневровые двигатели',
         'color': 'grey'
     },
     {
         'id': 'drive1',
+        'serverId': 12,
         'name': 'Двигатель 1',
         'color': 'grey'
     },
     {
         'id': 'drive2',
+        'serverId': 13,
         'name': 'Двигатель 2',
         'color': 'grey'
     },
@@ -150,6 +189,97 @@ var equipment = [
         'color': 'brown'
     }
 ];
+
+function idToServerId(id)
+{
+    return equipment.find(function(elem){ return elem.id === id; }).serverId;
+}
+function serverIdToId(serverId)
+{
+    return equipment.find(function(elem){ return elem.serverId === serverId; }).id;
+}
+
+function getData(callback)
+{
+    var request = new XMLHttpRequest();
+    request.open('POST', dbUrl, true);
+    request.setRequestHeader('Content-Type', 'application/json');
+    request.onreadystatechange =
+        function()
+        {
+            if (request.readyState == 4)
+            {
+                if (request.status == 200)
+                {
+                    callback(JSON.parse(JSON.parse(request.responseText)[0]));
+                }
+                else
+                {
+                    callback(undefined);
+                }
+            }
+        };
+    request.send(
+        JSON.stringify(
+            {
+                'method': 'get',
+                'object_id': 1,
+                'table': 'kopernik_sys',
+                'id' : 732
+            }));
+}
+
+function saveData(data)
+{
+    var request = new XMLHttpRequest();
+    request.open('POST', dbUrl, true);
+    request.setRequestHeader('Content-Type', 'application/json');
+
+    request.send(
+        JSON.stringify(
+            {
+                'method': 'document',
+                'object_id': 1,
+                'table': 'kopernik_sys',
+                'id' : 732,
+                'data': JSON.stringify(data)
+            }));
+    request.onreadystatechange =
+        function()
+        {
+            if (request.readyState == 4)
+            {
+            }
+        };
+}
+
+function updateData()
+{
+    getData(
+        function(data)
+        {
+            if (data !== undefined)
+            {
+                var info = data.data;
+                for (var i = 0; i < info.length; ++i)
+                {
+                    if (field.equipment[serverIdToId(info[i].sysid)].status !== 'online')
+                    {
+                        info[i].sysstatus = 0;
+                        info[i].sysdamage = 1;
+                    }
+                    else if (info[i].sysdamage === 1)
+                    {
+                        info[i].sysdamage = 0;
+                    }
+                }
+
+                ++data.meta.mark;
+
+                saveData(data);
+            }
+        });
+}
 
 function log(text)
 {
@@ -404,13 +534,13 @@ function addEquipment(field)
 
     setPercent(logInfo, 1, 1);
 }
-function removeBorders(field, ratio)
+function removeBorders(field)
 {
     var logInfo = { 'message': 'Исследуем вспомогательные подключения' };
 
     setPercent(logInfo);
 
-    var bordersToRemove = field.borderCount * ratio | 0;
+    var bordersToRemove = field.borderCount * bordersRatio | 0;
     if (bordersToRemove)
     {
         var borders = [];
@@ -905,7 +1035,7 @@ function connectHacker(params)
 {
     field = generateMazeWithoutLoops(params.hSize, params.vSize);
     addEquipment(field);
-    removeBorders(field, 0.1);
+    removeBorders(field);
     extendZones(field);
     determineNodePriorities(field);
     setHackerFogOfWar(field);
@@ -973,6 +1103,8 @@ function breakEquipment()
         var cell = field.cells[field.playerPosition.x][field.playerPosition.y];
         field.equipment[cell.equipment].status = 'broken';
 
+        updateData();
+
         setHackerActions(field);
 
         showField();
@@ -984,6 +1116,8 @@ function repairEquipment()
     {
         var cell = field.cells[field.playerPosition.x][field.playerPosition.y];
         field.equipment[cell.equipment].status = 'online';
+
+        updateData();
 
         setEngineerActions(field);
 
@@ -1013,6 +1147,53 @@ function connectEngineer()
     setEngineerActions(field);
 
     showField();
+}
+function start(params)
+{
+    getData(
+        function(data)
+        {
+            if (data !== undefined)
+            {
+                var info = data.data;
+
+                var damaged = [];
+
+                for (var i = 0; i < info.length; ++i)
+                {
+                    if (info[i].sysdamage === 1)
+                    {
+                        damaged.push(serverIdToId(info[i].sysid));
+                    }
+                }
+
+                if (damaged.length)
+                {
+                    field = generateMazeWithoutLoops(params.hSize, params.vSize);
+                    addEquipment(field);
+                    removeBorders(field);
+                    extendZones(field);
+                    determineNodePriorities(field);
+
+                    for (var j = 0; j < damaged.length; ++j)
+                    {
+                        field.equipment[damaged[j]].status = 'broken';
+                    }
+
+                    var message = {};
+                    message.type = 'show_engineer_greeting';
+                    message.data = field;
+                    postMessage(message);
+
+                    return;
+                }
+            }
+
+            var message = {};
+            message.type = 'show_hacker_greeting';
+            message.data = field;
+            postMessage(message);
+        });
 }
 
 onmessage =
@@ -1059,6 +1240,9 @@ onmessage =
             break;
         case 'disconnect':
             disconnect();
+            break;
+        case 'start':
+            start(msg.params);
             break;
         }
     }
