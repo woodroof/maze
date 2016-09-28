@@ -1,7 +1,7 @@
-var hackTime = 5 * 60 * 1000;
+var hackTime = 4 * 60 * 1000;
 var endHackTimeout;
 
-var moveTime = 1000;
+var moveTime = 500;
 var breakTime = 30 * 1000;
 var repairTime = 2 * breakTime;
 var engineerVisibleArea = 2;
