@@ -1,5 +1,4 @@
 /* TODO:
- * - Help
  * - Обновить оборудование
  * Опционально:
  * - Сообщения о переходе в другой сектор
@@ -40,6 +39,17 @@ var criticalTime = 30 * 1000;
 
 var singleLevelConnectionCount = 20;
 var levelCount = 3;
+
+var helpDescription =
+    '<p>Перед вами система работы с компьютерной сетью корабля Коперник.' +
+    '<p>Кружками зелёного цвета обозначено подключенное оборудование. Злоумышленники могут добраться до узлов и взломать их, нарушив таким образом работу оборудования.' +
+    '<p>Оборудование относится к одному из шести секторов, узлы и связи которых отмечены на схеме соответствующим цветом. Большая часть всего оборудования, подключенного к сети, относится к синему сектору.' +
+    '<p>Единственный узел на схеме отображается синим цветом - это узел оборудования командного центра. Он настолько хорошо защищён, что можно быть уверенным - никакой хакер его не взломает.' +
+    '<p>Учтите, не всё оборудование одинаково критично для функционирования корабля.' +
+    '<p>Линиями на схеме обозначены связи между узлами.<br>У злоумышленников нет прямого доступа к оборудованию, поэтому они по сети могут перемещаться только по связям. У инженеров такое ограничение отсутствует.' +
+    '<p>Чем связь ближе к командному центру, тем более насыщенным цветом она отображается.' +
+    '<p>Системы безопасности в случае подозрения на наличие несанкционированного доступа запускают полное сканирование сети. После завершения сканирования все несанкционированные подключения обрываются. Если найдено неисправное оборудование, до его починки системы безопасности остаются в режиме тревоги, препятствуя любым попыткам повторного взлома.' +
+    '<p>Взлом или починка оборудования - сложная задача, и всегда есть риск ошибиться. Чем больше устройств было взломано или починено за одно подключение, тем больше шанс ошибиться при работе с очередным устройством.';
 
 function log(text)
 {
@@ -460,6 +470,7 @@ function showMessage(message)
     var messageZone = document.createElement('div');
     messageZone.id = 'message';
     messageZone.className = 'message_zone';
+    messageZone.style.minWidth = logWidth + fieldZoneVSize + 2 * (timerWidth + 4);
 
     var messageInnerZone = document.createElement('div');
     messageInnerZone.className = 'message_inner_zone';
@@ -475,7 +486,7 @@ function showMessage(message)
 
     var messageField = document.createElement('div');
     messageField.className = 'message_field';
-    messageField.innerText = message;
+    messageField.innerHTML = message;
     messageBox.appendChild(messageField);
 
     var messageButton = document.createElement('div');
@@ -529,6 +540,16 @@ function prepare()
     actionZone.style.marginRight = logWidth + 'px';
     actionZone.style.height = actionZoneHeight - 4 + 'px';
     actionZone.style.padding = '2px 0 2px 2px';
+
+    var helpZone = document.createElement('div');
+    helpZone.className = 'help_zone';
+    actionZone.appendChild(helpZone);
+
+    var help = document.createElement('div');
+    help.className = 'help';
+    help.innerText = '?';
+    help.onclick = function() { showMessage(helpDescription) };
+    helpZone.appendChild(help);
 
     var actionField = document.createElement('div');
     actionField.id = 'actions';
