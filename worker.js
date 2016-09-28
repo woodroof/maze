@@ -190,6 +190,21 @@ var equipment = [
     }
 ];
 
+var injuryProbability = 1/3;
+
+var injuries = [
+    "Удар электрическим током пришёлся в руку. Конечность онемела и не слушается. Чтобы излечиться, вам понадобится помощь врача.",
+    "Удар электрическим током пришёлся в ногу. Конечность онемела и не слушается. Чтобы излечиться, вам понадобится помощь врача.",
+    "Вы получили мощный удар током прямо в спину и теряете сознание. Через 5 минут приходите в себя и чувствуете сильную слабость, с трудом можете двигаться и разговаривать. Помочь вам может только врач.",
+    "Вашу голову пронзает удар током! Вы падаете без сознания. Через 5 минут, придя в себя, вы понимаете, что не можете нормально видеть - всё двоится в глазах. Срочно к доктору!",
+    "Вы случайно поранили руку. Кровотечение вы остановили, но без врачебной помощи не обойтись. Конечность болит и плохо слушается. Без доктора это состояние пройдёт только через пару дней.",
+    "Во время работ вы были невнимательны, на вас упал тяжёлый предмет. Удар пришёлся в голову, вы потеряли сознание на 5 минут. С тех пор у вас двоится в глазах, вас тошнит и вы не можете сосредоточиться, о применении проф. способностей речи не идёт.",
+    "Плохо закреплённое оборудование наносит вам сильный удар в грудь. Вам очень больно, вы с трудом дышите и не можете стоять прямо. Не можете применять проф. способности. Вам срочно нужна помощь врача.",
+    "Раскалённый провод касается вашей руки. Повреждения небольшие, но конечность не двигается. Через час подвижность восстановится сама собой.",
+    "Раскалённый провод касается вашей ноги. Повреждения небольшие, но конечность не двигается. Через час подвижность восстановится сама собой.",
+    "Вы упали и ударились головой. Чувствуете лёгкое головокружение, не можете быстро двигаться, громко говорить и применять проф. способности. Через 15 минут всё пройдёт."
+];
+
 function serverIdToId(serverId)
 {
     return equipment.find(function(elem){ return elem.serverId === serverId; }).id;
@@ -496,6 +511,7 @@ function addEquipment(field)
 
     setPercent(logInfo);
 
+    field.brokenEquipmentCount = 0;
     field.equipment = {};
 
     for (var i = 0; i < equipment.length; ++i)
@@ -696,6 +712,7 @@ function setHackerPosition(field)
     var x = randomIdx(0, field.vSize - 1);
     var y = randomIdx(0, field.hSize - 1);
     field.playerPosition = {'x': x, 'y': y};
+    field.actionsDone = 0;
 }
 function addCutActions(field)
 {
@@ -873,16 +890,7 @@ function disconnect()
 
     var message = {};
 
-    var broken = false;
-    for (var currentEquipment in field.equipment)
-    {
-        if (field.equipment[currentEquipment].status !== 'online')
-        {
-            broken = true;
-            break;
-        }
-    }
-    if (broken)
+    if (field.brokenEquipmentCount)
     {
         message.type = 'show_engineer_greeting';
     }
@@ -1092,12 +1100,45 @@ function moveEngineer(dx, dy)
         showField();
     }
 }
+function calcProbabitily(probability, actionsDone)
+{
+    var result = probability;
+    while (actionsDone)
+    {
+        result += (1 - result) * probability;
+        --actionsDone;
+    }
+    return result;
+}
+function sleepOrBeHarmed(time)
+{
+    var rand = Math.random();
+    var probability = calcProbabitily(injuryProbability, field.actionsDone);
+    if (rand < probability)
+    {
+        time = randomIdx(0, time);
+        if (sleep(time))
+        {
+            disconnect();
+
+            var message = {};
+            message.type = 'show_message';
+            message.data = injuries[randomIdx(0, injuries.length - 1)];
+            postMessage(message);
+        }
+
+        return false;
+    }
+    return sleep(time);
+}
 function breakEquipment()
 {
-    if (sleep(breakTime))
+    if (sleepOrBeHarmed(breakTime))
     {
         var cell = field.cells[field.playerPosition.x][field.playerPosition.y];
         field.equipment[cell.equipment].status = 'broken';
+        ++field.brokenEquipmentCount;
+        ++field.actionsDone;
 
         updateData();
 
@@ -1108,24 +1149,16 @@ function breakEquipment()
 }
 function repairEquipment()
 {
-    if (sleep(repairTime))
+    if (sleepOrBeHarmed(repairTime))
     {
         var cell = field.cells[field.playerPosition.x][field.playerPosition.y];
         field.equipment[cell.equipment].status = 'online';
+        --field.brokenEquipmentCount;
+        ++field.actionsDone;
 
         updateData();
 
-        var broken = false;
-        for (var elem in field.equipment)
-        {
-            if (field.equipment[elem].status !== 'online')
-            {
-                broken = true;
-                break;
-            }
-        }
-
-        if (broken)
+        if (field.brokenEquipmentCount)
         {
             setEngineerActions(field);
 
@@ -1155,6 +1188,7 @@ function connectEngineer()
     setPercent(logInfo, 1, 1);
 
     field.playerPosition = {'x': field.commandPosition.x, 'y': field.commandPosition.y};
+    field.actionsDone = 0;
 
     updateEngineerFogOfWar(field);
     setEngineerActions(field);
@@ -1191,6 +1225,7 @@ function start(params)
                     for (var j = 0; j < damaged.length; ++j)
                     {
                         field.equipment[damaged[j]].status = 'broken';
+                        ++field.brokenEquipmentCount;
                     }
 
                     var message = {};

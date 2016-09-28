@@ -1,6 +1,5 @@
 /* TODO:
  * - Help
- * - "Плохие" последствия
  * - Обновить оборудование
  * Опционально:
  * - Сообщения о переходе в другой сектор
@@ -456,6 +455,44 @@ function startEngineerGame()
 
     worker.postMessage(message);
 }
+function showMessage(message)
+{
+    var messageZone = document.createElement('div');
+    messageZone.id = 'message';
+    messageZone.className = 'message_zone';
+
+    var messageInnerZone = document.createElement('div');
+    messageInnerZone.className = 'message_inner_zone';
+    messageZone.appendChild(messageInnerZone);
+
+    var messageBorder = document.createElement('div');
+    messageBorder.className = 'message_border';
+    messageInnerZone.appendChild(messageBorder);
+
+    var messageBox = document.createElement('div');
+    messageBox.className = 'message_box';
+    messageBorder.appendChild(messageBox);
+
+    var messageField = document.createElement('div');
+    messageField.className = 'message_field';
+    messageField.innerText = message;
+    messageBox.appendChild(messageField);
+
+    var messageButton = document.createElement('div');
+    messageButton.className = 'button';
+    messageButton.style.height = buttonHeight - 10 - 2 + 'px';
+    messageButton.style.padding = '5px';
+    messageButton.style.margin = '5px';
+    messageButton.onclick =
+        function()
+        {
+            document.body.removeChild(document.getElementById('message'));
+        };
+    messageButton.innerText = 'OK';
+    messageBox.appendChild(messageButton);
+
+    document.body.insertBefore(messageZone, document.body.firstChild);
+}
 function prepare()
 {
     document.body.innerHTML = '';
@@ -573,6 +610,9 @@ worker.onmessage =
             break;
         case 'show_engineer_greeting':
             showEngineerGreeting();
+            break;
+        case 'show_message':
+            showMessage(message.data);
             break;
         }
     };
