@@ -29,148 +29,160 @@ var equipment = [
         'color': 'yellow'
     },
     {
-        'id': 'spaceport',
-        'serverId': 20,
-        'name': 'Космопорт',
-        'color': 'blue'
+        'id': 'reactor3',
+        'serverId': 3,
+        'name': 'Реактор 3',
+        'color': 'yellow'
     },
     {
-        'id': 'squadron1',
-        'serverId': 21,
-        'name': 'Эскадрилья 1',
-        'color': 'blue'
-    },
-    {
-        'id': 'squadron2',
-        'serverId': 22,
-        'name': 'Эскадрилья 2',
-        'color': 'blue'
-    },
-    {
-        'id': 'squadron3',
-        'serverId': 23,
-        'name': 'Эскадрилья 3',
-        'color': 'blue'
-    },
-    {
-        'id': 'squadron4',
-        'serverId': 24,
-        'name': 'Эскадрилья 4',
-        'color': 'blue'
-    },
-    {
-        'id': 'weapon1',
-        'serverId': 6,
-        'name': 'Орудие 1',
-        'color': 'blue'
-    },
-    {
-        'id': 'weapon2',
-        'serverId': 7,
-        'name': 'Орудие 2',
-        'color': 'blue'
-    },
-    {
-        'id': 'weapon3',
-        'serverId': 8,
-        'name': 'Орудие 3',
-        'color': 'blue'
-    },
-    {
-        'id': 'weapon4',
-        'serverId': 9,
-        'name': 'Орудие 4',
-        'color': 'blue'
-    },
-    {
-        'id': 'radar',
-        'serverId': 18,
-        'name': 'Радар',
-        'color': 'blue'
-    },
-    {
-        'id': 'observatory',
-        'serverId': 19,
-        'name': 'Система наблюдения',
-        'color': 'blue'
+        'id': 'reactor4',
+        'serverId': 4,
+        'name': 'Реактор 4',
+        'color': 'yellow'
     },
     {
         'id': 'transmitter1',
-        'serverId': 3,
+        'serverId': 5,
         'name': 'Тахионный передатчик 1',
         'color': 'blue'
     },
     {
         'id': 'transmitter2',
-        'serverId': 4,
+        'serverId': 6,
         'name': 'Тахионный передатчик 2',
         'color': 'blue'
     },
     {
-        'id': 'shield1',
-        'serverId': 15,
-        'name': 'Генератор щита 1',
-        'color': 'blue'
-    },
-    {
-        'id': 'shield2',
-        'serverId': 16,
-        'name': 'Генератор щита 2',
-        'color': 'blue'
-    },
-    {
         'id': 'beacon',
-        'serverId': 5,
+        'serverId': 7,
         'name': 'Гипермаяк',
         'color': 'blue'
     },
     {
-        'id': 'close_range_weapon',
+        'id': 'weapon1',
+        'serverId': 8,
+        'name': 'Орудие 1',
+        'color': 'blue'
+    },
+    {
+        'id': 'weapon2',
+        'serverId': 9,
+        'name': 'Орудие 2',
+        'color': 'blue'
+    },
+    {
+        'id': 'weapon3',
         'serverId': 10,
+        'name': 'Орудие 3',
+        'color': 'blue'
+    },
+    {
+        'id': 'weapon4',
+        'serverId': 11,
+        'name': 'Орудие 4',
+        'color': 'blue'
+    },
+    {
+        'id': 'close_range_weapon',
+        'serverId': 12,
         'name': 'Орудия ближнего боя',
         'color': 'blue'
     },
     {
-        'id': 'medlab',
-        'serverId': 25,
-        'name': 'Медицинский отсек',
-        'color': 'blue'
-    },
-    {
-        'id': 'lab',
-        'serverId': 26,
-        'name': 'Лаборатория',
-        'color': 'blue'
-    },
-    {
-        'id': 'life_support',
-        'serverId': 17,
-        'name': 'Система жизнеобеспечения',
-        'color': 'grey'
-    },
-    {
         'id': 'hyperdrive',
-        'serverId': 11,
+        'serverId': 13,
         'name': 'Гипердвигатель',
         'color': 'grey'
     },
     {
-        'id': 'maneuvering_thrusters',
-        'serverId': 14,
-        'name': 'Маневровые двигатели',
-        'color': 'grey'
-    },
-    {
         'id': 'drive1',
-        'serverId': 12,
+        'serverId': 14,
         'name': 'Двигатель 1',
         'color': 'grey'
     },
     {
         'id': 'drive2',
-        'serverId': 13,
+        'serverId': 15,
         'name': 'Двигатель 2',
         'color': 'grey'
+    },
+    {
+        'id': 'maneuvering_thrusters',
+        'serverId': 16,
+        'name': 'Маневровые двигатели',
+        'color': 'grey'
+    },
+    {
+        'id': 'shield1',
+        'serverId': 17,
+        'name': 'Генератор щита 1',
+        'color': 'blue'
+    },
+    {
+        'id': 'shield2',
+        'serverId': 18,
+        'name': 'Генератор щита 2',
+        'color': 'blue'
+    },
+    {
+        'id': 'life_support',
+        'serverId': 19,
+        'name': 'Система жизнеобеспечения',
+        'color': 'grey'
+    },
+    {
+        'id': 'radar',
+        'serverId': 20,
+        'name': 'Радар',
+        'color': 'blue'
+    },
+    {
+        'id': 'observatory',
+        'serverId': 21,
+        'name': 'Система наблюдения',
+        'color': 'blue'
+    },
+    {
+        'id': 'spaceport',
+        'serverId': 22,
+        'name': 'Космопорт',
+        'color': 'blue'
+    },
+    {
+        'id': 'squadron1',
+        'serverId': 23,
+        'name': 'Эскадрилья 1',
+        'color': 'blue'
+    },
+    {
+        'id': 'squadron2',
+        'serverId': 24,
+        'name': 'Эскадрилья 2',
+        'color': 'blue'
+    },
+    {
+        'id': 'squadron3',
+        'serverId': 25,
+        'name': 'Эскадрилья 3',
+        'color': 'blue'
+    },
+    {
+        'id': 'squadron4',
+        'serverId': 26,
+        'name': 'Эскадрилья 4',
+        'color': 'blue'
+    },
+    {
+        'id': 'lab',
+        'serverId': 27,
+        'name': 'Лаборатория',
+        'color': 'blue'
+    },
+    {
+        'id': 'medlab',
+        'serverId': 28,
+        'name': 'Медицинский отсек',
+        'color': 'blue'
     },
     // Всякое левое
     {
