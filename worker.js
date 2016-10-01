@@ -61,31 +61,31 @@ var equipment = [
     {
         'id': 'weapon1',
         'serverId': 8,
-        'name': 'Орудие 1',
+        'name': 'Плазмогенератор 1',
         'color': 'blue'
     },
     {
         'id': 'weapon2',
         'serverId': 9,
-        'name': 'Орудие 2',
+        'name': 'Плазмогенератор 2',
         'color': 'blue'
     },
     {
         'id': 'weapon3',
         'serverId': 10,
-        'name': 'Орудие 3',
+        'name': 'Плазмогенератор 3',
         'color': 'blue'
     },
     {
         'id': 'weapon4',
         'serverId': 11,
-        'name': 'Орудие 4',
+        'name': 'Плазмогенератор 4',
         'color': 'blue'
     },
     {
         'id': 'close_range_weapon',
         'serverId': 12,
-        'name': 'Орудия ближнего боя',
+        'name': 'Микролуч',
         'color': 'blue'
     },
     {
@@ -115,13 +115,13 @@ var equipment = [
     {
         'id': 'shield1',
         'serverId': 17,
-        'name': 'Генератор щита 1',
+        'name': 'Метеоритная защита 1',
         'color': 'blue'
     },
     {
         'id': 'shield2',
         'serverId': 18,
-        'name': 'Генератор щита 2',
+        'name': 'Метеоритная защита 2',
         'color': 'blue'
     },
     {
@@ -139,7 +139,7 @@ var equipment = [
     {
         'id': 'observatory',
         'serverId': 21,
-        'name': 'Система наблюдения',
+        'name': 'Сканер',
         'color': 'blue'
     },
     {
@@ -151,25 +151,25 @@ var equipment = [
     {
         'id': 'squadron1',
         'serverId': 23,
-        'name': 'Эскадрилья 1',
+        'name': 'Бот 1',
         'color': 'blue'
     },
     {
         'id': 'squadron2',
         'serverId': 24,
-        'name': 'Эскадрилья 2',
+        'name': 'Бот 2',
         'color': 'blue'
     },
     {
         'id': 'squadron3',
         'serverId': 25,
-        'name': 'Эскадрилья 3',
+        'name': 'Бот 3',
         'color': 'blue'
     },
     {
         'id': 'squadron4',
         'serverId': 26,
-        'name': 'Эскадрилья 4',
+        'name': 'Бот 4',
         'color': 'blue'
     },
     {
@@ -234,6 +234,7 @@ function getData(callback)
             {
                 if (request.status == 200)
                 {
+console.log(request.responseText);
                     callback(JSON.parse(JSON.parse(request.responseText)[0]));
                 }
                 else
